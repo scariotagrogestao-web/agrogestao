@@ -62,17 +62,7 @@ export default function Header({
 
       {/* Right User Actions & Search */}
       <div className="flex items-center gap-4">
-        {/* Search */}
-        <div className="relative focus-within:ring-2 focus-within:ring-emerald-700/20 rounded-lg transition-all duration-200">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-          <input 
-            type="text"
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-            placeholder={placeholder}
-            className="pl-10 pr-4 py-2 bg-slate-900 border-none rounded-lg text-xs font-sans w-52 focus:outline-none placeholder:text-slate-500 text-slate-100"
-          />
-        </div>
+
 
         {/* Action icons */}
         <button 

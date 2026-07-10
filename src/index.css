@@ -64,3 +64,34 @@ tbody tr:nth-child(odd) {
   color: #9ca3af !important;
 }
 
+/* Custom dashboard colors override */
+.text-\[\#002046\], .text-emerald-800, .text-emerald-700 {
+  color: #34d399 !important;
+}
+.text-purple-600, .text-purple-700 {
+  color: #c084fc !important;
+}
+.text-red-600, .text-red-700 {
+  color: #fb7185 !important;
+}
+
+.bg-\[\#faf5ff\], div[class*="bg-[#faf5ff]"] {
+  background-color: rgba(168, 85, 247, 0.08) !important;
+  border-color: rgba(168, 85, 247, 0.2) !important;
+}
+.bg-\[\#f0fdf4\], div[class*="bg-[#f0fdf4]"] {
+  background-color: rgba(16, 185, 129, 0.08) !important;
+  border-color: rgba(16, 185, 129, 0.2) !important;
+}
+
+/* Cartesian grid and tooltip styles */
+.recharts-cartesian-grid-horizontal line, .recharts-cartesian-grid-vertical line {
+  stroke: #1f2937 !important;
+}
+.recharts-tooltip-wrapper .recharts-default-tooltip {
+  background-color: #0b0f19 !important;
+  border-color: #1f2937 !important;
+  color: #f3f4f6 !important;
+}
+
+

@@ -1557,7 +1557,7 @@ function renderSafraDashboard() {
                   <span>🌾 ${item.name} (${item.culture})</span>
                   <span style="font-family:monospace">${fmtNum(item.toneladas)} t (${percent.toFixed(1)}%)</span>
                 </div>
-                <div style="background:#e2e8f0; height:18px; border-radius:30px; overflow:hidden;">
+                <div style="background:var(--border); height:18px; border-radius:30px; overflow:hidden;">
                   <div style="background:${colors[idx % colors.length]}; width:${barWidth}%; height:100%; border-radius:30px;"></div>
                 </div>
               </div>
