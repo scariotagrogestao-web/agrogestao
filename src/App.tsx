@@ -7,8 +7,16 @@ import ExpensesView from './components/ExpensesView';
 import ProducaoEntryView from './components/ProducaoEntryView';
 import PagamentoReportView from './components/PagamentoReportView';
 import DashboardSafraView from './components/DashboardSafraView';
+import SettingsView from './components/SettingsView';
 import * as XLSX from 'xlsx';
 import logoAgrogestao from './logo_agrogestao.png';
+  // ... existing imports remain unchanged
+  // Add rendering for Settings view
+  // After existing view conditions, add:
+  // {currentView === 'settings' && isAdmin && (
+  //   <SettingsView customUsers={customUsers} setCustomUsers={setCustomUsers} />
+  // )}
+
 
 import { initialClientsAndVehicles, initialExpenses, initialLocalitySheets } from './initialData';
 import { ClientOrVehicle, LocalitySheet, Expense, HourlyReading, MachineConfig } from './types';
@@ -27,7 +35,8 @@ import {
   Download, 
   Upload, 
   Database,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Trash2
 } from 'lucide-react';
 
 export default function App() {
@@ -37,9 +46,20 @@ export default function App() {
 
   // Authentication States
   const [currentUser, setCurrentUser] = useState<string | null>(() => localStorage.getItem('agrog_user'));
-  const [username, setUsername] = useState('');
+  const [rememberUser, setRememberUser] = useState<boolean>(true);
+  const [username, setUsername] = useState(() => (localStorage.getItem('agrog_remember') === 'true' ? localStorage.getItem('agrog_saved_username') || '' : ''));
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState('');
+  const [customUsers, setCustomUsers] = useState<{username: string, password: string}[]>(() => {
+    const saved = localStorage.getItem('agrog_custom_users');
+    return saved ? JSON.parse(saved) : [{ username: 'anderson', password: 'AgroGestao10726' }];
+  });
+
+  // User Manager States
+  const [newUsername, setNewUsername] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [userError, setUserError] = useState('');
 
   // 1. Core Original App States
   const [clientsAndVehicles, setClientsAndVehicles] = useState<ClientOrVehicle[]>(() => {
@@ -102,6 +122,10 @@ export default function App() {
     localStorage.setItem('agrog_producoes', JSON.stringify(producoes));
   }, [producoes]);
 
+  useEffect(() => {
+    localStorage.setItem('agrog_custom_users', JSON.stringify(customUsers));
+  }, [customUsers]);
+
   // Security guard for non-admin settings access
   useEffect(() => {
     if (currentUser === 'anderson' && currentView === 'settings') {
@@ -112,11 +136,24 @@ export default function App() {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     const uLower = username.toLowerCase().trim();
-    if ((uLower === 'admin' || uLower === 'anderson') && password === 'AgroGestao10726') {
+    
+    // Check system admin
+    const isSystemAdmin = uLower === 'admin' && password === 'AgroGestao10726';
+    
+    // Check custom user
+    const matchedUser = customUsers.find(u => u.username.toLowerCase().trim() === uLower);
+    const isCustomUser = matchedUser && matchedUser.password === password;
+
+    if (isSystemAdmin || isCustomUser) {
       setCurrentUser(uLower);
       localStorage.setItem('agrog_user', uLower);
+      
+      // Persist username if "Remember me" is checked
+      localStorage.setItem('agrog_saved_username', username);
+      localStorage.setItem('agrog_remember', 'true');
+      setRememberUser(true);
+      
       setLoginError('');
-      setUsername('');
       setPassword('');
     } else {
       setLoginError('Usuário ou senha incorretos.');
@@ -127,6 +164,44 @@ export default function App() {
     setCurrentUser(null);
     localStorage.removeItem('agrog_user');
     setCurrentView('dashboard');
+  };
+
+  const handleCreateUser = (e: React.FormEvent) => {
+    e.preventDefault();
+    setUserError('');
+    
+    const uClean = newUsername.trim().toLowerCase();
+    const pClean = newPassword.trim();
+    
+    if (!uClean || !pClean) {
+      setUserError('Preencha todos os campos.');
+      return;
+    }
+    
+    if (uClean === 'admin') {
+      setUserError('O usuário "admin" já é reservado pelo sistema.');
+      return;
+    }
+    
+    if (customUsers.some(u => u.username.toLowerCase() === uClean)) {
+      setUserError('Este usuário já existe.');
+      return;
+    }
+    
+    setCustomUsers(prev => [...prev, { username: uClean, password: pClean }]);
+    setNewUsername('');
+    setNewPassword('');
+    alert(`Usuário "${uClean}" criado com sucesso!`);
+  };
+
+  const handleDeleteUser = (usernameToDelete: string) => {
+    if (usernameToDelete.toLowerCase() === 'anderson') {
+      alert('O usuário "anderson" é o operador padrão e não pode ser excluído.');
+      return;
+    }
+    if (confirm(`Deseja mesmo remover o acesso do usuário "${usernameToDelete}"?`)) {
+      setCustomUsers(prev => prev.filter(u => u.username.toLowerCase() !== usernameToDelete.toLowerCase()));
+    }
   };
 
   // Registry (Cadastro Geral) actions
@@ -613,15 +688,26 @@ export default function App() {
 
             <div className="flex flex-col gap-1.5">
               <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Senha</label>
-              <input 
-                type="password" 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full p-3 bg-slate-950 border border-slate-800 rounded-lg text-sm outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 text-slate-100"
-                required
-              />
+              <div className="relative">
+                <input 
+                  type={showPassword ? "text" : "password"} 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full p-3 pr-16 bg-slate-950 border border-slate-800 rounded-lg text-sm outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 text-slate-100"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 text-[10px] font-bold uppercase tracking-wider cursor-pointer border-none bg-transparent select-none"
+                >
+                  {showPassword ? "Ocultar" : "Mostrar"}
+                </button>
+              </div>
             </div>
+
+            <!-- Remember me is always enabled and persisted automatically -->
 
             <button 
               type="submit"
@@ -730,41 +816,6 @@ export default function App() {
         )}
  
         {currentView === 'settings' && (
-          <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-xs fade-in space-y-6">
-            <div>
-              <h2 className="text-lg font-bold text-[#002046] flex items-center gap-2">
-                <Database className="w-5 h-5 text-[#002046]" />
-                <span>Configurações do Sistema</span>
-              </h2>
-              <p className="text-xs text-slate-500 mt-1">Gerencie a persistência dos dados e backups do AgroGestão.</p>
-            </div>
- 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100">
-              <div className="border border-slate-200 rounded-xl p-5 space-y-4">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">📥 Backup & Exportação</h3>
-                <p className="text-xs text-slate-600">Salve uma cópia completa de todos os seus dados locais (despesas, horímetros, safra e cadastros) em formato JSON.</p>
-                <button 
-                  onClick={handleExportData}
-                  className="flex items-center gap-2 px-4 py-2 bg-[#002046] text-white rounded-lg text-xs font-bold hover:bg-slate-800 transition-colors cursor-pointer"
-                >
-                  <Download className="w-4 h-4" />
-                  <span>Exportar Dados</span>
-                </button>
-              </div>
- 
-              <div className="border border-slate-200 rounded-xl p-5 space-y-4">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">📤 Importação de Backup</h3>
-                <p className="text-xs text-slate-600">Restaure as informações a partir de um arquivo JSON exportado anteriormente.</p>
-                <div className="flex items-center gap-3">
-                  <label className="flex items-center gap-2 px-4 py-2 border border-slate-200 bg-white hover:bg-slate-50 rounded-lg text-xs font-bold text-slate-700 transition-colors cursor-pointer">
-                    <Upload className="w-4 h-4 text-slate-500" />
-                    <span>Selecionar Backup JSON</span>
-                    <input 
-                      type="file" 
-                      accept=".json" 
-                      onChange={handleImportData}
-                      className="hidden" 
-                    />
                   </label>
                 </div>
               </div>
@@ -786,6 +837,83 @@ export default function App() {
                 </div>
               </div>
             </div>
+
+            {/* Dynamic User Management Panel - Only visible for Admin */}
+            <div className="border border-slate-200 rounded-xl p-5 space-y-4 pt-6 border-t border-slate-100">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">👥 Criar e Gerenciar Contas de Operadores</h3>
+              <p className="text-xs text-slate-600">Cadastre novas contas de acesso para operadores da fazenda. Todos os usuários criados aqui terão acesso restrito (sem permissão para acessar esta aba de Configurações).</p>
+              
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-2 items-start">
+                {/* Create Form */}
+                <form onSubmit={handleCreateUser} className="lg:col-span-5 space-y-4 bg-slate-900/50 p-4 border border-slate-800 rounded-xl">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-400">＋ Novo Operador</h4>
+                  {userError && (
+                    <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-2.5 rounded-lg text-xs font-medium text-center">
+                      {userError}
+                    </div>
+                  )}
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[9px] uppercase font-bold text-slate-400">Nome de Usuário</label>
+                    <input 
+                      type="text" 
+                      value={newUsername}
+                      onChange={(e) => setNewUsername(e.target.value)}
+                      placeholder="Ex: joao.silva"
+                      className="p-2.5 bg-slate-950 border border-slate-800 rounded-lg text-xs outline-none focus:border-emerald-600 text-slate-100 placeholder:text-slate-600"
+                      required
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[9px] uppercase font-bold text-slate-400">Senha de Acesso</label>
+                    <input 
+                      type="text" 
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="Senha (mín. 4 caracteres)"
+                      className="p-2.5 bg-slate-950 border border-slate-800 rounded-lg text-xs outline-none focus:border-emerald-600 text-slate-100 placeholder:text-slate-600"
+                      required
+                    />
+                  </div>
+                  <button 
+                    type="submit"
+                    className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs tracking-wider uppercase py-2.5 rounded-lg transition-colors cursor-pointer"
+                  >
+                    Criar Acesso
+                  </button>
+                </form>
+
+                {/* Users Table */}
+                <div className="lg:col-span-7 border border-slate-800 bg-slate-900/30 rounded-xl overflow-hidden">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-slate-950 border-b border-slate-800 text-[10px] uppercase tracking-wider text-slate-400 font-bold">
+                        <th className="py-2.5 px-3">Usuário</th>
+                        <th className="py-2.5 px-3">Senha de Acesso</th>
+                        <th className="py-2.5 px-3 w-16 text-center">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody className="text-xs text-slate-300">
+                      {customUsers.map(u => (
+                        <tr key={u.username} className="border-b border-slate-800/40 hover:bg-slate-900/20">
+                          <td className="py-2 px-3 font-semibold text-emerald-400">{u.username}</td>
+                          <td className="py-2 px-3 font-mono">{u.password}</td>
+                          <td className="py-2 px-3 text-center">
+                            <button 
+                              type="button"
+                              onClick={() => handleDeleteUser(u.username)}
+                              className={`text-slate-400 hover:text-red-500 p-1 rounded transition-colors cursor-pointer border-none bg-transparent ${u.username === 'anderson' ? 'opacity-30 cursor-not-allowed' : ''}`}
+                              title={u.username === 'anderson' ? 'Não é possível excluir o usuário padrão' : 'Excluir usuário'}
+                              disabled={u.username === 'anderson'}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
  
             <div className="pt-6 border-t border-slate-100">
               <div className="bg-red-50/50 border border-red-100 rounded-xl p-5 space-y-4">
