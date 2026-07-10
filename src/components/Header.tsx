@@ -1,5 +1,5 @@
-import { Search, Bell, HelpCircle, LayoutDashboard, Users, Tractor, Receipt, Settings, Scale, FileText, Sprout } from 'lucide-react';
-import logoImg from '../AgroGestao_logotipo.png';
+import { Search, Bell, HelpCircle, LayoutDashboard, Users, Tractor, Receipt, Settings, Scale, FileText, Sprout, LogOut } from 'lucide-react';
+import logoImg from '../logo_agrogestao.png';
 
 interface HeaderProps {
   searchQuery: string;
@@ -7,6 +7,8 @@ interface HeaderProps {
   currentView: string;
   onNavigate: (view: string) => void;
   placeholder?: string;
+  isAdmin: boolean;
+  onLogout: () => void;
 }
 
 const menuItems = [
@@ -25,8 +27,15 @@ export default function Header({
   onSearchChange, 
   currentView,
   onNavigate,
-  placeholder = "Buscar registros..." 
+  placeholder = "Buscar registros...",
+  isAdmin,
+  onLogout
 }: HeaderProps) {
+  // Hide settings if the user is not admin
+  const filteredMenuItems = isAdmin 
+    ? menuItems 
+    : menuItems.filter(item => item.id !== 'settings');
+
   return (
     <header className="h-[72px] bg-slate-950 border-b border-slate-800 flex justify-between items-center px-8 w-full sticky top-0 z-40 shadow-sm shrink-0">
       {/* Brand Logo / Identity */}
@@ -34,14 +43,14 @@ export default function Header({
         <img 
           src={logoImg} 
           alt="AgroGestão Logo" 
-          style={{ height: '58px' }}
-          className="w-auto object-contain brightness-110 contrast-105" 
+          style={{ height: '52px' }}
+          className="w-auto object-contain brightness-110 contrast-105 rounded-full" 
         />
       </div>
 
       {/* Center Horizontal Menu Navigation Tabs */}
       <nav className="hidden lg:flex items-center gap-1 flex-1 justify-center">
-        {menuItems.map(item => {
+        {filteredMenuItems.map(item => {
           const Icon = item.icon;
           const isActive = currentView === item.id;
           return (
@@ -61,10 +70,8 @@ export default function Header({
         })}
       </nav>
 
-      {/* Right User Actions & Search */}
+      {/* Right User Actions */}
       <div className="flex items-center gap-4">
-
-
         {/* Action icons */}
         <button 
           onClick={() => alert('Não há novas notificações.')}
@@ -77,12 +84,21 @@ export default function Header({
         <div className="h-6 w-[1px] bg-slate-800 mx-1"></div>
 
         <button 
-          onClick={() => alert('Perfil: agromec.contato@gmail.com')}
-          className="flex items-center gap-2 hover:bg-slate-900 p-1.5 rounded-full transition-colors cursor-pointer border-none bg-transparent"
+          onClick={() => {
+            if (confirm('Deseja encerrar a sessão?')) {
+              onLogout();
+            }
+          }}
+          className="flex items-center gap-2 hover:bg-slate-900 p-1.5 rounded-lg transition-colors cursor-pointer border-none bg-transparent"
+          title="Clique para Sair / Desconectar"
         >
-          <div className="w-8 h-8 rounded-full bg-emerald-700 flex items-center justify-center text-white font-bold text-xs">
-            AG
+          <div className="w-8 h-8 rounded-full bg-emerald-700 flex items-center justify-center text-white font-bold text-xs select-none">
+            {isAdmin ? 'AD' : 'AN'}
           </div>
+          <span className="text-[10px] font-bold text-slate-300 mr-2 capitalize">
+            {isAdmin ? 'Admin' : 'Anderson'}
+          </span>
+          <LogOut className="w-3.5 h-3.5 text-slate-400" />
         </button>
       </div>
     </header>

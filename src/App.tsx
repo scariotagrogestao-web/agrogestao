@@ -8,6 +8,7 @@ import ProducaoEntryView from './components/ProducaoEntryView';
 import PagamentoReportView from './components/PagamentoReportView';
 import DashboardSafraView from './components/DashboardSafraView';
 import * as XLSX from 'xlsx';
+import logoAgrogestao from './logo_agrogestao.png';
 
 import { initialClientsAndVehicles, initialExpenses, initialLocalitySheets } from './initialData';
 import { ClientOrVehicle, LocalitySheet, Expense, HourlyReading, MachineConfig } from './types';
@@ -33,6 +34,12 @@ export default function App() {
   // Navigation
   const [currentView, setCurrentView] = useState<string>('dashboard');
   const [globalSearch, setGlobalSearch] = useState<string>('');
+
+  // Authentication States
+  const [currentUser, setCurrentUser] = useState<string | null>(() => localStorage.getItem('agrog_user'));
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
 
   // 1. Core Original App States
   const [clientsAndVehicles, setClientsAndVehicles] = useState<ClientOrVehicle[]>(() => {
@@ -94,6 +101,33 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('agrog_producoes', JSON.stringify(producoes));
   }, [producoes]);
+
+  // Security guard for non-admin settings access
+  useEffect(() => {
+    if (currentUser === 'anderson' && currentView === 'settings') {
+      setCurrentView('dashboard');
+    }
+  }, [currentUser, currentView]);
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    const uLower = username.toLowerCase().trim();
+    if ((uLower === 'admin' || uLower === 'anderson') && password === 'AgroGestao10726') {
+      setCurrentUser(uLower);
+      localStorage.setItem('agrog_user', uLower);
+      setLoginError('');
+      setUsername('');
+      setPassword('');
+    } else {
+      setLoginError('Usuário ou senha incorretos.');
+    }
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    localStorage.removeItem('agrog_user');
+    setCurrentView('dashboard');
+  };
 
   // Registry (Cadastro Geral) actions
   const handleAddClientOrVehicle = (item: ClientOrVehicle) => {
@@ -544,6 +578,63 @@ export default function App() {
     alert('Dados de planilhas exportados em backup JSON com sucesso.');
   };
 
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6 text-slate-100 font-sans antialiased">
+        <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl flex flex-col items-center gap-6 animate-in fade-in zoom-in-95 duration-200">
+          <img 
+            src={logoAgrogestao} 
+            alt="AgroGestão Logo" 
+            className="w-40 h-40 object-contain rounded-full shadow-lg border border-slate-800/50 bg-emerald-950/20 p-2" 
+          />
+          <div className="text-center">
+            <h2 className="text-2xl font-black text-emerald-400">Acesso ao Sistema</h2>
+            <p className="text-xs text-slate-400 mt-1">Insira suas credenciais para entrar na plataforma</p>
+          </div>
+
+          <form onSubmit={handleLogin} className="w-full flex flex-col gap-4">
+            {loginError && (
+              <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-3 rounded-lg text-xs font-semibold text-center">
+                {loginError}
+              </div>
+            )}
+            
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Usuário</label>
+              <input 
+                type="text" 
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Ex: Admin"
+                className="w-full p-3 bg-slate-950 border border-slate-800 rounded-lg text-sm outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 text-slate-100"
+                required
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Senha</label>
+              <input 
+                type="password" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full p-3 bg-slate-950 border border-slate-800 rounded-lg text-sm outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 text-slate-100"
+                required
+              />
+            </div>
+
+            <button 
+              type="submit"
+              className="w-full bg-emerald-700 text-white font-bold text-xs tracking-wider uppercase py-3.5 rounded-lg hover:bg-emerald-800 transition-colors shadow-lg cursor-pointer mt-2"
+            >
+              Confirmar Acesso
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col font-sans antialiased text-slate-100">
       <Header 
@@ -552,6 +643,8 @@ export default function App() {
         currentView={currentView}
         onNavigate={setCurrentView}
         placeholder={currentView === 'expenses' ? "Filtrar por despesa ou motorista..." : "Buscar nos registros..."}
+        isAdmin={currentUser === 'admin'}
+        onLogout={handleLogout}
       />
 
       <main className="flex-1 p-6 max-w-7xl mx-auto w-full flex flex-col gap-6 overflow-y-auto">
@@ -576,14 +669,14 @@ export default function App() {
             onAddArea={handleAddArea}
             onEditArea={handleEditArea}
             onDeleteArea={handleDeleteArea}
-
+ 
             motoristas={motoristas}
             onAddMotorista={handleAddMotorista}
             onEditMotorista={handleEditMotorista}
             onDeleteMotorista={handleDeleteMotorista}
           />
         )}
-
+ 
         {currentView === 'hours' && (
           <MachineHoursView 
             localitySheets={localitySheets}
@@ -597,7 +690,7 @@ export default function App() {
             onExport={handleExportAllSpreadsheets}
           />
         )}
-
+ 
         {currentView === 'production' && (
           <ProducaoEntryView 
             producoes={producoes}
@@ -609,7 +702,7 @@ export default function App() {
             onDeleteProducao={handleDeleteProducao}
           />
         )}
-
+ 
         {currentView === 'payments' && (
           <PagamentoReportView 
             producoes={producoes}
@@ -618,14 +711,14 @@ export default function App() {
             motoristas={motoristas}
           />
         )}
-
+ 
         {currentView === 'safraDashboard' && (
           <DashboardSafraView 
             producoes={producoes} 
             areas={areas} 
           />
         )}
-
+ 
         {currentView === 'expenses' && (
           <ExpensesView 
             expenses={expenses}
@@ -635,7 +728,7 @@ export default function App() {
             onExport={handleExportAllSpreadsheets}
           />
         )}
-
+ 
         {currentView === 'settings' && (
           <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-xs fade-in space-y-6">
             <div>
@@ -645,7 +738,7 @@ export default function App() {
               </h2>
               <p className="text-xs text-slate-500 mt-1">Gerencie a persistência dos dados e backups do AgroGestão.</p>
             </div>
-
+ 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100">
               <div className="border border-slate-200 rounded-xl p-5 space-y-4">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">📥 Backup & Exportação</h3>
@@ -658,7 +751,7 @@ export default function App() {
                   <span>Exportar Dados</span>
                 </button>
               </div>
-
+ 
               <div className="border border-slate-200 rounded-xl p-5 space-y-4">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">📤 Importação de Backup</h3>
                 <p className="text-xs text-slate-600">Restaure as informações a partir de um arquivo JSON exportado anteriormente.</p>
@@ -675,7 +768,7 @@ export default function App() {
                   </label>
                 </div>
               </div>
-
+ 
               <div className="border border-slate-200 rounded-xl p-5 space-y-4 col-span-1 md:col-span-2">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">📊 Importação de Planilha Excel (.xlsx)</h3>
                 <p className="text-xs text-slate-600">Importe diretamente arquivos Excel de controle de máquinas, horímetros e gastos operacionais.</p>
@@ -693,7 +786,7 @@ export default function App() {
                 </div>
               </div>
             </div>
-
+ 
             <div className="pt-6 border-t border-slate-100">
               <div className="bg-red-50/50 border border-red-100 rounded-xl p-5 space-y-4">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-red-700">⚠️ Zona de Perigo</h3>
@@ -710,7 +803,7 @@ export default function App() {
           </div>
         )}
       </main>
-
+ 
       <footer className="bg-white border-t border-slate-200 py-4 text-center text-[10px] font-semibold text-slate-400 uppercase tracking-widest shrink-0">
         © 2026 AgroGestão ERP — Sistema Integrado de Controle Agrícola & Safra
       </footer>

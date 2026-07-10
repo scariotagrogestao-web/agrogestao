@@ -305,7 +305,40 @@ const getDriverForMachine = (machineName) => {
 };
 
 function renderView() {
+  const nav = document.querySelector('.top-nav');
   const container = document.getElementById('content');
+  
+  const user = localStorage.getItem('agrog_user') || null;
+  
+  if (!user) {
+    if (nav) nav.style.display = 'none';
+    container.innerHTML = renderLogin();
+    return;
+  }
+  
+  if (nav) nav.style.display = 'flex';
+  
+  const avatar = document.querySelector('.top-nav-user');
+  if (avatar) {
+    const isAdm = user === 'admin';
+    avatar.innerHTML = `
+      <div style="display:flex;align-items:center;gap:8px;cursor:pointer" onclick="confirmLogout()" title="Clique para sair">
+        <div class="avatar" style="font-weight:800">${isAdm ? 'AD' : 'AN'}</div>
+        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.85);text-transform:capitalize">${user}</span>
+        <span style="font-size:11px;opacity:0.6;margin-left:4px">🚪</span>
+      </div>
+    `;
+  }
+  
+  const settingsItem = document.querySelector('.top-nav-item[data-view="settings"]');
+  if (settingsItem) {
+    settingsItem.style.display = user === 'admin' ? 'block' : 'none';
+  }
+  
+  if (user === 'anderson' && currentView === 'settings') {
+    currentView = 'dashboard';
+  }
+  
   if (currentView === 'dashboard') container.innerHTML = renderDashboard();
   else if (currentView === 'registries') container.innerHTML = renderRegistries();
   else if (currentView === 'hours') container.innerHTML = renderHours();
@@ -314,6 +347,61 @@ function renderView() {
   else if (currentView === 'safraDashboard') container.innerHTML = renderSafraDashboard();
   else if (currentView === 'expenses') container.innerHTML = renderExpenses();
   else if (currentView === 'settings') container.innerHTML = renderSettings();
+}
+
+function renderLogin() {
+  return `
+    <div style="display:flex; justify-content:center; align-items:center; min-height:calc(100vh - 100px); padding:20px;">
+      <div class="card" style="width:100%; max-width:400px; padding:30px; border-radius:16px; background:var(--card); border:1px solid var(--border); display:flex; flex-direction:column; gap:20px; align-items:center; box-shadow:var(--shadow-md)">
+        <img src="logo_agrogestao.png" alt="AgroGestão Logo" style="width:130px; height:130px; object-fit:contain; border:1px solid var(--border); border-radius:50%; background:rgba(20,184,166,0.05); padding:10px;">
+        
+        <div style="text-align:center">
+          <h3 style="font-weight:900; color:var(--primary-light); font-size:1.4rem">Acesso ao Painel</h3>
+          <p style="font-size:10px; color:var(--text-muted); margin-top:2px">Insira usuário e senha para acessar a plataforma</p>
+        </div>
+        
+        <div id="login-error" style="display:none; width:100%; padding:10px; border-radius:8px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2); color:#fb7185; font-size:11px; font-weight:600; text-align:center"></div>
+        
+        <div style="width:100%; display:flex; flex-direction:column; gap:12px">
+          <div class="form-group" style="margin-bottom:0">
+            <label>Usuário</label>
+            <input type="text" id="login-username" class="form-control" placeholder="Ex: Admin" onkeydown="if(event.key==='Enter')submitLogin()">
+          </div>
+          
+          <div class="form-group" style="margin-bottom:0">
+            <label>Senha</label>
+            <input type="password" id="login-password" class="form-control" placeholder="••••••••" onkeydown="if(event.key==='Enter')submitLogin()">
+          </div>
+        </div>
+        
+        <button class="btn btn-primary" onclick="submitLogin()" style="width:100%; justify-content:center; padding:12px; margin-top:10px; font-size:12px">Entrar no Sistema</button>
+      </div>
+    </div>
+  `;
+}
+
+function submitLogin() {
+  const u = document.getElementById('login-username').value.trim();
+  const p = document.getElementById('login-password').value;
+  const err = document.getElementById('login-error');
+  
+  const uLower = u.toLowerCase();
+  if ((uLower === 'admin' || uLower === 'anderson') && p === 'AgroGestao10726') {
+    localStorage.setItem('agrog_user', uLower);
+    err.style.display = 'none';
+    renderView();
+  } else {
+    err.textContent = 'Usuário ou senha incorretos.';
+    err.style.display = 'block';
+  }
+}
+
+function confirmLogout() {
+  if (confirm('Deseja encerrar a sessão?')) {
+    localStorage.removeItem('agrog_user');
+    currentView = 'dashboard';
+    renderView();
+  }
 }
 
 // ===== 1. DASHBOARD VIEW (OPERATIONAL) =====

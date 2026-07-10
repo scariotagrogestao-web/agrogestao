@@ -153,10 +153,20 @@ export default function ExpensesView({
   const stats = useMemo(() => {
     const total = filteredExpenses.reduce((sum, e) => sum + e.value, 0);
 
-    // Type totals for largest category
-    const typeTotals: Record<string, number> = {};
+    // Type totals initialized with all 8 standard categories
+    const typeTotals: Record<string, number> = {
+      'diesel': 0,
+      'alimentação': 0,
+      'gasolina': 0,
+      'pedágio': 0,
+      'hospedagem': 0,
+      'manutenção': 0,
+      'abastecimento': 0,
+      'outro': 0
+    };
     filteredExpenses.forEach(e => {
-      typeTotals[e.type] = (typeTotals[e.type] || 0) + e.value;
+      const type = (e.type || 'outro').toLowerCase().trim();
+      typeTotals[type] = (typeTotals[type] || 0) + e.value;
     });
 
     // Find highest type
@@ -209,17 +219,24 @@ export default function ExpensesView({
   };
 
   const getBulletColor = (type: string) => {
-    switch (type) {
-      case 'alimentação':
-        return 'bg-slate-500';
-      case 'gasolina':
-        return 'bg-blue-500';
+    const t = (type || '').toLowerCase().trim();
+    switch (t) {
       case 'diesel':
-        return 'bg-emerald-600';
+        return 'bg-emerald-500';
+      case 'gasolina':
+        return 'bg-indigo-500';
+      case 'alimentação':
+        return 'bg-amber-500';
+      case 'manutenção':
+        return 'bg-rose-500';
+      case 'hospedagem':
+        return 'bg-sky-500';
       case 'pedágio':
-        return 'bg-purple-400';
+        return 'bg-pink-500';
+      case 'abastecimento':
+        return 'bg-orange-500';
       default:
-        return 'bg-[#002046]';
+        return 'bg-slate-500';
     }
   };
 
