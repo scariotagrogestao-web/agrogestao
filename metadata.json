@@ -1,0 +1,6 @@
+{
+  "name": "AgroGestion ERP",
+  "description": "ERP para gestão agrícola, controle de máquinas, despesas, horas-máquina e cadastro de clientes e veículos.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

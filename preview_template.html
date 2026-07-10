@@ -1,0 +1,2161 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgroGestão ERP — Painel Integrado Standalone</title>
+<meta name="description" content="Gestão Agrícola Standalone - Apontamentos de Horímetros, Safra e Despesas">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#002046;--navy-light:#0a3060;--navy-dark:#001530;
+  --primary:#047857;--primary-light:#059669;--primary-dark:#064e3b;
+  --accent:#10b981;--accent-light:#34d399;--accent-dark:#047857;
+  --warn:#f59e0b;--danger:#ef4444;--info:#3b82f6;
+  --bg:#f8fafc;--card:#fff;--border:#e2e8f0;
+  --text:#1e293b;--text-muted:#64748b;--text-light:#94a3b8;
+  --shadow:0 1px 3px rgba(0,0,0,.05),0 1px 2px rgba(0,0,0,.02);
+  --shadow-md:0 4px 6px -1px rgba(0,0,0,.08),0 2px 4px -2px rgba(0,0,0,.04);
+  --radius:12px;--radius-sm:8px;
+}
+html{font-size:13px;scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+.top-nav {display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:70px;background:linear-gradient(90deg,var(--navy) 0%,var(--navy-dark) 100%);color:#fff;position:sticky;top:0;z-index:100;box-shadow:var(--shadow-md)}
+.top-nav-brand{display:flex;flex-direction:column;justify-content:center}
+.top-nav-brand h1{font-size:1.15rem;font-weight:900;display:flex;align-items:center;gap:8px}
+.top-nav-brand small{font-size:.62rem;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
+.top-nav-menu{display:flex;gap:6px;align-items:center;overflow-x:auto;max-width:65%}
+.top-nav-menu::-webkit-scrollbar{display:none}
+.top-nav-item{display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:var(--radius-sm);color:rgba(255,255,255,.7);cursor:pointer;transition:all .2s;font-weight:600;font-size:.78rem;white-space:nowrap;user-select:none}
+.top-nav-item:hover{color:#fff;background:rgba(255,255,255,.06)}
+.top-nav-item.active{color:#fff;background:var(--primary)}
+.top-nav-item svg{width:15px;height:15px;flex-shrink:0}
+.top-nav-user{display:flex;align-items:center;gap:10px}
+.top-nav-user .avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--primary));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.85rem}
+.main{min-height:calc(100vh - 70px);display:flex;flex-direction:column}
+.content{flex:1;padding:24px 28px;overflow-y:auto;max-width:1280px;width:100%;margin:0 auto}
+.page-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px}
+.page-title h3{font-size:1.35rem;font-weight:900;color:var(--navy)}
+.page-title p{font-size:.8rem;color:var(--text-muted);margin-top:2px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius-sm);font-size:.8rem;font-weight:600;border:none;cursor:pointer;transition:all .2s;font-family:inherit;white-space:nowrap}
+.btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{background:var(--primary-dark);transform:translateY(-1px);box-shadow:var(--shadow-md)}
+.btn-outline{background:#fff;border:1px solid var(--border);color:var(--text);box-shadow:var(--shadow)}.btn-outline:hover{border-color:var(--primary);color:var(--primary);background:#fafafa}
+.btn-danger{background:var(--danger);color:#fff}.btn-danger:hover{background:#dc2626;transform:translateY(-1px);box-shadow:var(--shadow-md)}
+.btn-icon{padding:6px;border-radius:6px;background:#fff;border:1px solid var(--border);cursor:pointer;color:var(--text-muted);transition:all .2s;display:inline-flex;align-items:center;justify-content:center}
+.btn-icon:hover{border-color:var(--primary);color:var(--primary);box-shadow:var(--shadow)}
+.btn-icon.danger:hover{border-color:var(--danger);color:var(--danger);background:rgba(239,68,68,.04)}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px;margin-bottom:24px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s;box-shadow:var(--shadow)}
+.kpi:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.kpi-label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:8px}
+.kpi-value{font-size:1.6rem;font-weight:900;color:var(--navy);line-height:1.1}
+.kpi-sub{font-size:.72rem;color:var(--text-light);margin-top:6px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);margin-bottom:20px}
+.card-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.card-header h4{font-size:.95rem;font-weight:800;color:var(--navy)}
+.card-body{padding:20px}
+.grid-12{display:grid;grid-template-columns:repeat(12,1fr);gap:24px}
+.col-4{grid-column:span 4}.col-8{grid-column:span 8}
+@media (max-width:1024px){.col-4,.col-8{grid-column:span 12}}
+.filters{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;background:var(--card);border:1px solid var(--border);padding:14px 18px;border-radius:var(--radius);align-items:flex-end}
+.filter-group{display:flex;flex-direction:column;gap:4px;flex:1;min-width:150px}
+.filter-group label{font-size:.68rem;font-weight:700;text-transform:uppercase;color:var(--text-muted)}
+.filter-select{width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:.78rem;background:#fafafa;color:var(--text);outline:none;transition:border .2s;cursor:pointer}
+.filter-select:focus{border-color:var(--primary)}
+table{width:100%;border-collapse:collapse;text-align:left}
+th,td{padding:10px 14px;border-bottom:1px solid var(--border)}
+th{font-size:.73rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);background:#fafafa}
+td{font-size:.8rem}
+.table-wrap{overflow-x:auto}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:.72rem;font-weight:700;text-transform:uppercase;color:var(--text-muted);margin-bottom:5px}
+.form-control{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:.8rem;outline:none;transition:border-color .2s;background:#fafafa}
+.form-control:focus{border-color:var(--primary)}
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type=number] {
+  -moz-appearance: textfield;
+}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-error{background:#fee2e2;border:1px solid #fecdd3;color:#b91c1c;padding:10px 14px;border-radius:var(--radius-sm);font-size:.75rem;font-weight:600;margin-bottom:14px}
+.badge{display:inline-flex;padding:3px 8px;border-radius:20px;font-size:.68rem;font-weight:700;text-transform:uppercase}
+.badge-green{background:#d1e7dd;color:#0f5132}
+.badge-blue{background:#cff4fc;color:#055160}
+.badge-amber{background:#fff3cd;color:#664d03}
+.badge-gray{background:#e2e8f0;color:#334155}
+.toast{position:fixed;bottom:20px;right:20px;background:#1e293b;color:#fff;padding:12px 20px;border-radius:var(--radius-sm);box-shadow:var(--shadow-lg);font-size:.8rem;font-weight:600;display:flex;align-items:center;gap:8px;transform:translateY(100px);opacity:0;transition:all .3s ease;z-index:999}
+.toast.show{transform:translateY(0);opacity:1}
+
+/* Resizer styles */
+.resizer {
+  position: absolute; right: 0; top: 0; bottom: 0; width: 4px; cursor: col-resize; user-select: none; transition: background 0.15s;
+}
+.resizer:hover, .resizer.resizing {
+  background: var(--navy) !important; width: 6px;
+}
+
+/* Sub-tabs for Registries */
+.sub-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 10px;
+  border-radius: var(--radius);
+  align-items: center;
+  flex-wrap: wrap;
+}
+.sub-tab-btn {
+  padding: 8px 16px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.sub-tab-btn:hover {
+  background: #f1f5f9;
+  color: var(--text);
+}
+.sub-tab-btn.active {
+  background: var(--navy);
+  color: #fff;
+}
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <div class="top-nav-brand">
+    <h1><span>🚜</span> AgroGestão ERP</h1>
+    <small>Painel de Controle Integrado Standalone</small>
+  </div>
+  
+  <div class="top-nav-menu">
+    <div class="top-nav-item active" data-view="dashboard" onclick="navigate('dashboard')">📊 Dashboard</div>
+    <div class="top-nav-item" data-view="registries" onclick="navigate('registries')">🗂️ Cadastros</div>
+    <div class="top-nav-item" data-view="hours" onclick="navigate('hours')">⏱️ Horas-Máquina</div>
+    <div class="top-nav-item" data-view="production" onclick="navigate('production')">🌾 Lançar Produção</div>
+    <div class="top-nav-item" data-view="payments" onclick="navigate('payments')">🧾 Relatórios</div>
+    <div class="top-nav-item" data-view="safraDashboard" onclick="navigate('safraDashboard')">📈 Métricas de Safra</div>
+    <div class="top-nav-item" data-view="expenses" onclick="navigate('expenses')">💸 Gastos</div>
+    <div class="top-nav-item" data-view="settings" onclick="navigate('settings')">⚙️ Config</div>
+  </div>
+  
+  <div class="top-nav-user">
+    <div class="avatar">AG</div>
+  </div>
+</nav>
+
+<div class="main">
+  <div class="content" id="content"></div>
+</div>
+
+<!-- Modal Structure -->
+<div class="modal-overlay" id="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modal"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== INJECTED DATABASES FROM TS CODE =====
+const DEFAULT_DATA = {
+  vehicles: ##VEHICLES##,
+  localities: ##LOCALITIES##,
+  expenses: ##EXPENSES##,
+  motoristas: ##MOTORISTAS##,
+  areas: ##AREAS##,
+  maquinas: ##MAQUINAS##,
+  producoes: ##PRODUCOES##
+};
+
+let DATA = {
+  vehicles: JSON.parse(localStorage.getItem('agrog_clients')) || DEFAULT_DATA.vehicles,
+  localities: JSON.parse(localStorage.getItem('agrog_sheets')) || DEFAULT_DATA.localities,
+  expenses: JSON.parse(localStorage.getItem('agrog_expenses')) || DEFAULT_DATA.expenses,
+  motoristas: JSON.parse(localStorage.getItem('agrog_motoristas')) || DEFAULT_DATA.motoristas,
+  areas: JSON.parse(localStorage.getItem('agrog_areas')) || DEFAULT_DATA.areas,
+  maquinas: JSON.parse(localStorage.getItem('agrog_maquinas')) || DEFAULT_DATA.maquinas,
+  producoes: JSON.parse(localStorage.getItem('agrog_producoes')) || DEFAULT_DATA.producoes
+};
+
+function saveData() {
+  localStorage.setItem('agrog_clients', JSON.stringify(DATA.vehicles));
+  localStorage.setItem('agrog_sheets', JSON.stringify(DATA.localities));
+  localStorage.setItem('agrog_expenses', JSON.stringify(DATA.expenses));
+  localStorage.setItem('agrog_motoristas', JSON.stringify(DATA.motoristas));
+  localStorage.setItem('agrog_areas', JSON.stringify(DATA.areas));
+  localStorage.setItem('agrog_maquinas', JSON.stringify(DATA.maquinas));
+  localStorage.setItem('agrog_producoes', JSON.stringify(DATA.producoes));
+}
+
+function resetDatabase() {
+  if (confirm('Deseja realmente redefinir o banco de dados? Todo o histórico personalizado será perdido.')) {
+    localStorage.clear();
+    DATA = {
+      vehicles: DEFAULT_DATA.vehicles,
+      localities: DEFAULT_DATA.localities,
+      expenses: DEFAULT_DATA.expenses,
+      motoristas: DEFAULT_DATA.motoristas,
+      areas: DEFAULT_DATA.areas,
+      maquinas: DEFAULT_DATA.maquinas,
+      producoes: DEFAULT_DATA.producoes
+    };
+    saveData();
+    renderView();
+    showToast('Banco de dados redefinido!', 'success');
+  }
+}
+
+// ===== UTILITIES =====
+function fmtBRL(v){return (v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}
+function fmtNum(v, dec=2){return (v||0).toLocaleString('pt-BR',{minimumFractionDigits:dec,maximumFractionDigits:dec})}
+function genId(prefix=''){return prefix+Date.now().toString(36)+Math.random().toString(36).substr(2,4)}
+function todayISO(){return new Date().toISOString().split('T')[0]}
+
+function getEntityColor(name) {
+  if (!name || name === '—' || name === '-') return 'background:#f8fafc; color:#334155; border:1px solid #e2e8f0;';
+  const colors = [
+    'background:#ecfdf5; color:#047857; border:1px solid #d1fae5;',
+    'background:#eff6ff; color:#1d4ed8; border:1px solid #dbeafe;',
+    'background:#faf5ff; color:#7e22ce; border:1px solid #f3e8ff;',
+    'background:#fffbeb; color:#b45309; border:1px solid #fef3c7;',
+    'background:#fff1f2; color:#be123c; border:1px solid #ffe4e6;',
+    'background:#ecfeff; color:#0e7490; border:1px solid #ccfbf1;',
+    'background:#e0e7ff; color:#4338ca; border:1px solid #e0e7ff;',
+    'background:#fff7ed; color:#c2410c; border:1px solid #ffedd5;'
+  ];
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const index = Math.abs(hash) % colors.length;
+  return colors[index];
+}
+
+function getWeekString(dateStr) {
+  if (!dateStr) return 'Semana Indefinida';
+  const d = new Date(dateStr + 'T12:00:00');
+  if (isNaN(d.getTime())) return 'Semana Indefinida';
+  const tempDate = new Date(d.valueOf());
+  tempDate.setDate(tempDate.getDate() + 4 - (tempDate.getDay() || 7));
+  const yearStart = new Date(tempDate.getFullYear(), 0, 1);
+  const weekNo = Math.ceil((((tempDate.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+  return `Semana ${weekNo}/${tempDate.getFullYear()}`;
+}
+
+function getHoursDiff(init, fin) {
+  const i = parseFloat(init);
+  const f = parseFloat(fin);
+  if (isNaN(i) || isNaN(f) || f < i) return 0;
+  return f - i;
+}
+
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show';
+  setTimeout(() => { t.className = 'toast'; }, 3000);
+}
+
+// ===== MODAL MANAGER =====
+function openModal(content) {
+  const overlay = document.getElementById('modal-overlay');
+  const modal = document.getElementById('modal');
+  modal.innerHTML = content;
+  overlay.style.display = 'flex';
+}
+function closeModal() {
+  document.getElementById('modal-overlay').style.display = 'none';
+}
+
+// ===== NAVIGATION =====
+let currentView = 'dashboard';
+function navigate(viewName) {
+  currentView = viewName;
+  document.querySelectorAll('.top-nav-item').forEach(item => {
+    if (item.getAttribute('onclick').includes(viewName)) {
+      item.classList.add('active');
+    } else {
+      item.classList.remove('active');
+    }
+  });
+  renderView();
+}
+
+// Resolvers
+const areaName = id => DATA.areas.find(a=>a.id===id)?.name || 'Desconhecido';
+const maquinaName = id => DATA.maquinas.find(m=>m.id===id)?.name || 'Desconhecido';
+const motoristaName = id => DATA.motoristas.find(m=>m.id===id)?.name || 'Desconhecido';
+const motoristaRate = id => DATA.motoristas.find(m=>m.id===id)?.ratePerHectare || 0;
+
+const getDriverForMachine = (machineName) => {
+  const norm = machineName.toLowerCase().replace(/\s/g, '');
+  const found = DATA.vehicles.find(v => v.name.toLowerCase().replace(/\s/g, '').includes(norm) || norm.includes(v.name.toLowerCase().replace(/\s/g, '')));
+  return found && found.responsible && found.responsible !== '-' ? found.responsible.split(' ')[0] : 'N/D';
+};
+
+function renderView() {
+  const container = document.getElementById('content');
+  if (currentView === 'dashboard') container.innerHTML = renderDashboard();
+  else if (currentView === 'registries') container.innerHTML = renderRegistries();
+  else if (currentView === 'hours') container.innerHTML = renderHours();
+  else if (currentView === 'production') container.innerHTML = renderProduction();
+  else if (currentView === 'payments') container.innerHTML = renderPayments();
+  else if (currentView === 'safraDashboard') container.innerHTML = renderSafraDashboard();
+  else if (currentView === 'expenses') container.innerHTML = renderExpenses();
+  else if (currentView === 'settings') container.innerHTML = renderSettings();
+}
+
+// ===== 1. DASHBOARD VIEW (OPERATIONAL) =====
+let selectedLocality = 'all';
+let selectedMachine = 'all';
+let selectedDriver = 'all';
+let selectedExpenseType = 'all';
+
+function renderDashboard() {
+  let totalHours = 0;
+  let totalRevenue = 0;
+
+  // Filter list values
+  const machinesSet = new Set();
+  DATA.localities.forEach(sheet => {
+    sheet.machines.forEach(m => machinesSet.add(m.name));
+  });
+  const machinesList = Array.from(machinesSet).sort();
+
+  const driversSet = new Set();
+  DATA.vehicles.forEach(v => {
+    if (v.responsible && v.responsible !== '-') driversSet.add(v.responsible.split(' ')[0]);
+  });
+  const driversList = Array.from(driversSet).sort();
+
+  // Collect productivity details per vehicle
+  const vehicleStats = {};
+  DATA.vehicles.forEach(v => {
+    vehicleStats[v.name] = { id: v.id, type: v.type, hours: 0, cost: 0, responsible: v.responsible };
+  });
+
+  DATA.localities.forEach(sheet => {
+    if (selectedLocality !== 'all' && sheet.id !== selectedLocality) return;
+
+    sheet.machines.forEach(m => {
+      if (selectedMachine !== 'all' && m.name !== selectedMachine) return;
+      const driver = getDriverForMachine(m.name);
+      if (selectedDriver !== 'all' && driver !== selectedDriver) return;
+
+      let machHours = 0;
+      Object.values(m.readings).forEach(r => {
+        machHours += getHoursDiff(r.initial, r.final);
+      });
+      totalHours += machHours;
+      totalRevenue += machHours * m.ratePerHour;
+
+      if (!vehicleStats[m.name]) {
+        vehicleStats[m.name] = { id: '—', type: 'Máquina', hours: 0, cost: 0, responsible: driver };
+      }
+      vehicleStats[m.name].hours += machHours;
+      vehicleStats[m.name].cost += machHours * m.ratePerHour;
+    });
+  });
+
+  let filteredExpenses = [...DATA.expenses];
+  if (selectedExpenseType !== 'all') filteredExpenses = filteredExpenses.filter(e => e.type === selectedExpenseType);
+  if (selectedMachine !== 'all') filteredExpenses = filteredExpenses.filter(e => e.machineName === selectedMachine);
+  if (selectedDriver !== 'all') filteredExpenses = filteredExpenses.filter(e => e.responsibleName === selectedDriver);
+
+  const totalExpense = filteredExpenses.reduce((s, e) => s + e.value, 0);
+  const profit = totalRevenue - totalExpense;
+
+  const tableList = Object.entries(vehicleStats)
+    .map(([name, val]) => ({ name, ...val }))
+    .filter(v => v.hours > 0)
+    .sort((a,b) => b.hours - a.hours);
+
+  return `
+    <div class="page-title">
+      <div>
+        <h3>Dashboard Operacional</h3>
+        <p>Acompanhamento de Horímetros de Máquinas, Faturamento e Gastos Operacionais. Passe o mouse nos cards e gráficos para mais informações.</p>
+      </div>
+      <button class="btn btn-primary" onclick="exportDashboardData()" title="Exportar dados resumidos do dashboard para CSV">📥 Exportar Dashboard</button>
+    </div>
+
+    <!-- Filters Panel -->
+    <div class="filters">
+      <div class="filter-group">
+        <label>Localidade</label>
+        <select class="filter-select" onchange="selectedLocality = this.value; renderView()">
+          <option value="all" ${selectedLocality === 'all' ? 'selected' : ''}>Todas as Localidades</option>
+          ${DATA.localities.map(l => `<option value="${l.id}" ${selectedLocality === l.id ? 'selected' : ''}>${l.name}</option>`).join('')}
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Máquina / Veículo</label>
+        <select class="filter-select" onchange="selectedMachine = this.value; renderView()">
+          <option value="all" ${selectedMachine === 'all' ? 'selected' : ''}>Todas as Máquinas</option>
+          ${machinesList.map(m => `<option value="${m}" ${selectedMachine === m ? 'selected' : ''}>${m}</option>`).join('')}
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Motorista / Responsável</label>
+        <select class="filter-select" onchange="selectedDriver = this.value; renderView()">
+          <option value="all" ${selectedDriver === 'all' ? 'selected' : ''}>Todos os Motoristas</option>
+          ${driversList.map(d => `<option value="${d}" ${selectedDriver === d ? 'selected' : ''}>${d}</option>`).join('')}
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Tipo de Gasto</label>
+        <select class="filter-select" onchange="selectedExpenseType = this.value; renderView()">
+          <option value="all" ${selectedExpenseType === 'all' ? 'selected' : ''}>Todos os Tipos de Gastos</option>
+          <option value="diesel" ${selectedExpenseType === 'diesel' ? 'selected' : ''}>Diesel</option>
+          <option value="gasolina" ${selectedExpenseType === 'gasolina' ? 'selected' : ''}>Gasolina</option>
+          <option value="alimentação" ${selectedExpenseType === 'alimentação' ? 'selected' : ''}>Alimentação</option>
+          <option value="manutenção" ${selectedExpenseType === 'manutenção' ? 'selected' : ''}>Manutenção</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Bento Grid -->
+    <div class="kpi-grid">
+      <div class="kpi navy" style="cursor:pointer" onclick="navigate('hours')" title="Clique para ver leituras de horas">
+        <div class="kpi-label">Horas Trabalhadas ➔</div>
+        <div class="kpi-value">${fmtNum(totalHours, 1)}h</div>
+        <div class="kpi-sub">Total acumulado da operação</div>
+      </div>
+      <div class="kpi green" style="cursor:pointer" onclick="navigate('hours')" title="Clique para detalhar valores por hora">
+        <div class="kpi-label">Faturamento Acumulado ➔</div>
+        <div class="kpi-value">${fmtBRL(totalRevenue)}</div>
+        <div class="kpi-sub">Faturamento bruto projetado</div>
+      </div>
+      <div class="kpi red" style="cursor:pointer" onclick="navigate('expenses')" title="Clique para gerenciar despesas">
+        <div class="kpi-label">Despesas Operacionais ➔</div>
+        <div class="kpi-value" style="color:var(--danger)">${fmtBRL(totalExpense)}</div>
+        <div class="kpi-sub">Gastos gerais do período</div>
+      </div>
+      <div class="kpi green" style="cursor:pointer" onclick="navigate('expenses')" title="Clique para analisar despesas">
+        <div class="kpi-label">Saldo / Margem Líquida ➔</div>
+        <div class="kpi-value" style="color:var(--primary-light)">${fmtBRL(profit)}</div>
+        <div class="kpi-sub">Lucro operacional acumulado</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h4>Resumo de Produtividade por Veículo</h4>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Nome da Máquina</th>
+              <th>Tipo</th>
+              <th>Motorista / Responsável</th>
+              <th style="text-align:right">Horas Acumuladas</th>
+              <th style="text-align:right">Faturamento Projetado</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${tableList.map((v, idx) => {
+              const bg = idx % 2 === 1 ? '#fdf9f0' : '#ffffff';
+              return `
+                <tr style="background:${bg}">
+                  <td style="font-weight:700">${v.name}</td>
+                  <td><span class="badge ${v.type==='Máquina'?'badge-green':v.type==='Caminhão'?'badge-blue':'badge-amber'}">${v.type}</span></td>
+                  <td style="font-weight:600">${v.responsible}</td>
+                  <td style="text-align:right;font-family:monospace;font-weight:700">${fmtNum(v.hours, 1)} hrs</td>
+                  <td style="text-align:right;font-family:monospace;font-weight:800;color:var(--primary-light)">${fmtBRL(v.cost)}</td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+function exportDashboardData() {
+  const csvRows = [];
+  csvRows.push("RELATORIO RESUMIDO DO DASHBOARD");
+  csvRows.push(`Exportado em:;${new Date().toLocaleString('pt-BR')}`);
+  csvRows.push("");
+  csvRows.push("Métrica;Valor");
+
+  // Summaries
+  let totalHours = 0;
+  let totalRevenue = 0;
+  DATA.localities.forEach(sheet => {
+    sheet.machines.forEach(m => {
+      let machHours = 0;
+      Object.values(m.readings).forEach(r => { machHours += getHoursDiff(r.initial, r.final); });
+      totalHours += machHours;
+      totalRevenue += machHours * m.ratePerHour;
+    });
+  });
+  const totalExpense = DATA.expenses.reduce((s, e) => s + e.value, 0);
+
+  csvRows.push(`Horas Trabalhadas;${totalHours.toFixed(1)} h`);
+  csvRows.push(`Faturamento Projetado;R$ ${totalRevenue.toFixed(2)}`);
+  csvRows.push(`Despesas Operacionais;R$ ${totalExpense.toFixed(2)}`);
+  csvRows.push(`Saldo Liquido;R$ ${(totalRevenue - totalExpense).toFixed(2)}`);
+
+  const blob = new Blob(["\uFEFF" + csvRows.join("\n")], {type: 'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `dashboard_resumo_export_${todayISO()}.csv`;
+  a.click();
+}
+
+// ===== 2. CADASTROS VIEWS (UNIFIED CRUDS) =====
+let activeRegistryTab = 'vehicles';
+let editRegistryId = null;
+let editProductionId = null;
+
+function changeRegistryTab(tabName) {
+  activeRegistryTab = tabName;
+  renderView();
+}
+
+function searchRegistries(query) {
+  renderView();
+}
+
+function renderRegistries() {
+  const searchQuery = document.getElementById('reg-search')?.value || '';
+  
+  let html = `
+    <div class="page-title">
+      <div>
+        <h3>Painel de Cadastros Gerais</h3>
+        <p>Gerencie a frota de maquinários, fazendas de atuação e equipes de operadores.</p>
+      </div>
+      <button class="btn btn-primary" onclick="openRegistryModal()">＋ Novo Registro</button>
+    </div>
+
+    <div class="sub-tabs">
+      <button class="sub-tab-btn ${activeRegistryTab === 'vehicles' ? 'active' : ''}" onclick="changeRegistryTab('vehicles')">🚜 Veículos e Máquinas (${DATA.vehicles.length})</button>
+      <button class="sub-tab-btn ${activeRegistryTab === 'areas' ? 'active' : ''}" onclick="changeRegistryTab('areas')">🏢 Áreas e Fazendas (${DATA.areas.length})</button>
+      <button class="sub-tab-btn ${activeRegistryTab === 'drivers' ? 'active' : ''}" onclick="changeRegistryTab('drivers')">👥 Funcionários / Motoristas (${DATA.motoristas.length})</button>
+      
+      <div style="margin-left:auto; position:relative; width:200px">
+        <input type="text" id="reg-search" class="form-control" placeholder="Buscar..." value="${searchQuery}" oninput="searchRegistries(this.value)" style="padding-top:4px; padding-bottom:4px; font-size:11px">
+      </div>
+    </div>
+
+    <div class="card"><div class="card-body table-wrap">
+  `;
+
+  if (activeRegistryTab === 'vehicles') {
+    const list = DATA.vehicles.filter(v => 
+      !searchQuery || 
+      v.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      (v.responsible && v.responsible.toLowerCase().includes(searchQuery.toLowerCase()))
+    );
+
+    html += `
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nome</th>
+            <th>Tipo</th>
+            <th>Detalhes</th>
+            <th>Frota/Placa</th>
+            <th>Motorista / Responsável</th>
+            <th style="text-align:right">Tarifa Horímetro</th>
+            <th style="text-align:center">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${list.map((v, idx) => {
+            const bg = idx % 2 === 1 ? '#fdf9f0' : '#ffffff';
+            return `
+              <tr style="background:${bg}; border-bottom:1px solid #cbd5e1">
+                <td style="font-family:monospace;color:var(--text-light)">${v.id}</td>
+                <td style="font-weight:700;color:var(--navy)">${v.name}</td>
+                <td><span class="badge ${v.type==='Máquina'?'badge-green':v.type==='Caminhão'?'badge-blue':'badge-amber'}">${v.type}</span></td>
+                <td>${v.details || '—'}</td>
+                <td style="font-family:monospace">${v.plateOrFleet || v.fleet || '—'}</td>
+                <td style="font-weight:600">${v.responsible || '—'}</td>
+                <td style="text-align:right;font-family:monospace;font-weight:700">${v.rate ? fmtBRL(v.rate) : '—'}</td>
+                <td style="text-align:center">
+                  <div style="display:flex;gap:4px;justify-content:center">
+                    <button class="btn-icon" onclick="openRegistryModal('${v.id}')">✏️</button>
+                    <button class="btn-icon danger" onclick="deleteRegistry('${v.id}')">🗑️</button>
+                  </div>
+                </td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    `;
+  } 
+  
+  else if (activeRegistryTab === 'areas') {
+    const list = DATA.areas.filter(a => 
+      !searchQuery || 
+      a.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      a.culture.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    html += `
+      <table>
+        <thead>
+          <tr>
+            <th>ID Área</th>
+            <th>Nome da Fazenda / Talhão</th>
+            <th>Cultura Plantada</th>
+            <th style="text-align:right">Tamanho da Área</th>
+            <th style="text-align:center">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${list.map((a, idx) => {
+            const bg = idx % 2 === 1 ? '#fdf9f0' : '#ffffff';
+            return `
+              <tr style="background:${bg}; border-bottom:1px solid #cbd5e1">
+                <td style="font-family:monospace;color:var(--text-light)">${a.id}</td>
+                <td style="font-weight:700;color:#0c4a23">${a.name}</td>
+                <td><span class="badge badge-blue">${a.culture}</span></td>
+                <td style="text-align:right;font-family:monospace;font-weight:700">${a.sizeHectares.toLocaleString('pt-BR')} ha</td>
+                <td style="text-align:center">
+                  <div style="display:flex;gap:4px;justify-content:center">
+                    <button class="btn-icon" onclick="openRegistryModal('${a.id}')">✏️</button>
+                    <button class="btn-icon danger" onclick="deleteRegistry('${a.id}')">🗑️</button>
+                  </div>
+                </td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    `;
+  } 
+  
+  else if (activeRegistryTab === 'drivers') {
+    const list = DATA.motoristas.filter(m => 
+      !searchQuery || 
+      m.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    html += `
+      <table>
+        <thead>
+          <tr>
+            <th>ID Cadastro</th>
+            <th>Nome do Funcionário / Operador</th>
+            <th style="text-align:center">Status</th>
+            <th style="text-align:right">Tarifa Pagamento (por Hectare)</th>
+            <th style="text-align:center">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${list.map((d, idx) => {
+            const bg = idx % 2 === 1 ? '#fdf9f0' : '#ffffff';
+            return `
+              <tr style="background:${bg}; border-bottom:1px solid #cbd5e1">
+                <td style="font-family:monospace;color:var(--text-light)">${d.id}</td>
+                <td style="font-weight:700;color:var(--text)">${d.name}</td>
+                <td style="text-align:center"><span class="badge ${d.status==='Ativo'?'badge-green':'badge-gray'}">${d.status}</span></td>
+                <td style="text-align:right;font-family:monospace;font-weight:700;color:var(--primary-dark)">${fmtBRL(d.ratePerHectare)}/ha</td>
+                <td style="text-align:center">
+                  <div style="display:flex;gap:4px;justify-content:center">
+                    <button class="btn-icon" onclick="openRegistryModal('${d.id}')">✏️</button>
+                    <button class="btn-icon danger" onclick="deleteRegistry('${d.id}')">🗑️</button>
+                  </div>
+                </td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    `;
+  }
+
+  html += `</div></div>`;
+  return html;
+}
+
+function openRegistryModal(id = null) {
+  editRegistryId = id;
+  setFormError('');
+
+  if (activeRegistryTab === 'vehicles') {
+    const v = id ? DATA.vehicles.find(x => x.id === id) : null;
+    openModal(`
+      <div class="modal-header"><h4>${v ? '✏️ Editar' : '＋ Novo'} Veículo / Máquina</h4><button class="modal-close" onclick="closeModal()">✕</button></div>
+      <div class="modal-body">
+        <div id="form-error" class="form-error" style="display:none"></div>
+        <div class="form-row">
+          <div class="form-group"><label>Nome da Máquina *</label><input id="reg-v-name" class="form-control" value="${v ? v.name : ''}"></div>
+          <div class="form-group"><label>Tipo *</label>
+            <select id="reg-v-type" class="form-control">
+              <option value="Máquina" ${v?.type==='Máquina'?'selected':''}>Máquina</option>
+              <option value="Caminhão" ${v?.type==='Caminhão'?'selected':''}>Caminhão</option>
+              <option value="Cliente/Setor" ${v?.type==='Cliente/Setor'?'selected':''}>Cliente/Setor</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group"><label>Descrição / Detalhes</label><input id="reg-v-details" class="form-control" value="${v ? (v.details || '') : ''}"></div>
+        <div class="form-row">
+          <div class="form-group"><label>Placa / Frota ID</label><input id="reg-v-fleet" class="form-control" value="${v ? (v.plateOrFleet || v.fleet || '') : ''}"></div>
+          <div class="form-group"><label>Operador Responsável</label><input id="reg-v-resp" class="form-control" value="${v ? (v.responsible || '') : ''}"></div>
+        </div>
+        <div class="form-group"><label>Tarifa Horímetro (R$/hora)</label><input id="reg-v-rate" type="number" step="0.01" class="form-control" value="${v ? (v.rate || '') : ''}"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal()">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveRegistryItem()">Salvar</button>
+      </div>
+    `);
+  } 
+  
+  else if (activeRegistryTab === 'areas') {
+    const a = id ? DATA.areas.find(x => x.id === id) : null;
+    openModal(`
+      <div class="modal-header"><h4>${a ? '✏️ Editar' : '＋ Nova'} Fazenda / Área</h4><button class="modal-close" onclick="closeModal()">✕</button></div>
+      <div class="modal-body">
+        <div id="form-error" class="form-error" style="display:none"></div>
+        <div class="form-group"><label>Nome da Fazenda *</label><input id="reg-a-name" class="form-control" value="${a ? a.name : ''}"></div>
+        <div class="form-row">
+          <div class="form-group"><label>Cultura Plantada *</label><input id="reg-a-culture" class="form-control" value="${a ? a.culture : ''}"></div>
+          <div class="form-group"><label>Tamanho (Hectares) *</label><input id="reg-a-size" type="number" step="0.01" class="form-control" value="${a ? a.sizeHectares : ''}"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal()">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveRegistryItem()">Salvar</button>
+      </div>
+    `);
+  } 
+  
+  else if (activeRegistryTab === 'drivers') {
+    const d = id ? DATA.motoristas.find(x => x.id === id) : null;
+    openModal(`
+      <div class="modal-header"><h4>${d ? '✏️ Editar' : '＋ Novo'} Operador / Funcionário</h4><button class="modal-close" onclick="closeModal()">✕</button></div>
+      <div class="modal-body">
+        <div id="form-error" class="form-error" style="display:none"></div>
+        <div class="form-group"><label>Nome Completo *</label><input id="reg-d-name" class="form-control" value="${d ? d.name : ''}"></div>
+        <div class="form-row">
+          <div class="form-group"><label>Tarifa Hectare (R$/ha) *</label><input id="reg-d-rate" type="number" step="0.01" class="form-control" value="${d ? d.ratePerHectare : ''}"></div>
+          <div class="form-group"><label>Status *</label>
+            <select id="reg-d-status" class="form-control">
+              <option value="Ativo" ${d?.status==='Ativo'?'selected':''}>Ativo</option>
+              <option value="Inativo" ${d?.status==='Inativo'?'selected':''}>Inativo</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal()">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveRegistryItem()">Salvar</button>
+      </div>
+    `);
+  }
+}
+
+function setFormError(msg) {
+  const err = document.getElementById('form-error');
+  if (err) {
+    if (msg) {
+      err.textContent = msg;
+      err.style.display = 'block';
+    } else {
+      err.style.display = 'none';
+    }
+  }
+}
+
+function saveRegistryItem() {
+  if (activeRegistryTab === 'vehicles') {
+    const name = document.getElementById('reg-v-name').value;
+    const type = document.getElementById('reg-v-type').value;
+    const rate = parseFloat(document.getElementById('reg-v-rate').value) || 0;
+
+    if (!name) { setFormError('Nome da máquina é obrigatório.'); return; }
+
+    const obj = {
+      id: editRegistryId || 'V' + (DATA.vehicles.length + 1).toString().padStart(2, '0') + '_' + Math.floor(Math.random()*100),
+      name,
+      type,
+      details: document.getElementById('reg-v-details').value,
+      plateOrFleet: document.getElementById('reg-v-fleet').value,
+      responsible: document.getElementById('reg-v-resp').value,
+      status: 'Ativo',
+      rate
+    };
+
+    if (editRegistryId) {
+      const idx = DATA.vehicles.findIndex(x => x.id === editRegistryId);
+      if (idx >= 0) DATA.vehicles[idx] = obj;
+    } else {
+      DATA.vehicles.push(obj);
+    }
+  } 
+  
+  else if (activeRegistryTab === 'areas') {
+    const name = document.getElementById('reg-a-name').value;
+    const culture = document.getElementById('reg-a-culture').value;
+    const size = parseFloat(document.getElementById('reg-a-size').value);
+
+    if (!name || !culture || isNaN(size)) { setFormError('Preencha os campos obrigatórios.'); return; }
+
+    const obj = {
+      id: editRegistryId || 'A' + (DATA.areas.length + 1).toString().padStart(2, '0') + '_' + Math.floor(Math.random()*100),
+      name,
+      culture,
+      sizeHectares: size
+    };
+
+    if (editRegistryId) {
+      const idx = DATA.areas.findIndex(x => x.id === editRegistryId);
+      if (idx >= 0) DATA.areas[idx] = obj;
+    } else {
+      DATA.areas.push(obj);
+    }
+  } 
+  
+  else if (activeRegistryTab === 'drivers') {
+    const name = document.getElementById('reg-d-name').value;
+    const rate = parseFloat(document.getElementById('reg-d-rate').value);
+    const status = document.getElementById('reg-d-status').value;
+
+    if (!name || isNaN(rate)) { setFormError('Preencha os campos obrigatórios.'); return; }
+
+    const obj = {
+      id: editRegistryId || 'D' + (DATA.motoristas.length + 1).toString().padStart(2, '0') + '_' + Math.floor(Math.random()*100),
+      name,
+      ratePerHectare: rate,
+      status
+    };
+
+    if (editRegistryId) {
+      const idx = DATA.motoristas.findIndex(x => x.id === editRegistryId);
+      if (idx >= 0) DATA.motoristas[idx] = obj;
+    } else {
+      DATA.motoristas.push(obj);
+    }
+  }
+
+  saveData();
+  closeModal();
+  renderView();
+  showToast('Cadastro atualizado com sucesso!', 'success');
+}
+
+function deleteRegistry(id) {
+  if (!confirm('Deseja realmente remover este registro?')) return;
+
+  if (activeRegistryTab === 'vehicles') {
+    DATA.vehicles = DATA.vehicles.filter(x => x.id !== id);
+  } else if (activeRegistryTab === 'areas') {
+    DATA.areas = DATA.areas.filter(x => x.id !== id);
+  } else if (activeRegistryTab === 'drivers') {
+    DATA.motoristas = DATA.motoristas.filter(x => x.id !== id);
+  }
+
+  saveData();
+  renderView();
+  showToast('Registro excluído!', 'success');
+}
+
+// ===== 3. HORAS-MAQUINA GRID SPREADSHEET =====
+function changeActiveSheet(id) {
+  localStorage.setItem('agrog_active_sheet', id);
+  renderView();
+}
+
+function renderHours() {
+  const activeSheetId = localStorage.getItem('agrog_active_sheet') || (DATA.localities[0] ? DATA.localities[0].id : '');
+  const sheet = DATA.localities.find(l => l.id === activeSheetId);
+  if (!sheet) return `<p>Selecione ou crie uma localidade nas Configurações.</p>`;
+
+  let totalHours = 0;
+  let totalCost = 0;
+  sheet.machines.forEach(m => {
+    let machHours = 0;
+    Object.values(m.readings).forEach(r => {
+      machHours += getHoursDiff(r.initial, r.final);
+    });
+    totalHours += machHours;
+    totalCost += machHours * m.ratePerHour;
+  });
+
+  return `
+    <div class="page-title">
+      <div>
+        <h3>Lançamento de Horas-Máquina</h3>
+        <p>Folha de Fechamento de Horímetros — ${sheet.name}</p>
+      </div>
+      <div class="page-actions">
+        <select class="filter-select" id="active-sheet-select" onchange="changeActiveSheet(this.value)">
+          ${DATA.localities.map(l => `<option value="${l.id}" ${l.id === activeSheetId ? 'selected' : ''}>${l.name}</option>`).join('')}
+        </select>
+        <button class="btn btn-primary" onclick="openAddMachineModal()">＋ Máquina</button>
+        <button class="btn btn-outline" onclick="openAddDateModal()">📅 Data</button>
+        <button class="btn btn-outline" onclick="openAddLocalityModal()">🏢 Localidade</button>
+      </div>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi navy">
+        <div class="kpi-label">Horas Trabalhadas (Local)</div>
+        <div class="kpi-value">${fmtNum(totalHours, 1)}h</div>
+      </div>
+      <div class="kpi green">
+        <div class="kpi-label">Custo Projetado (Local)</div>
+        <div class="kpi-value">${fmtBRL(totalCost)}</div>
+      </div>
+      <div class="kpi green">
+        <div class="kpi-label">Máquinas Ativas</div>
+        <div class="kpi-value">${sheet.machines.length}</div>
+      </div>
+    </div>
+
+    <div class="card"><div class="card-body table-wrap" style="max-height: 500px; overflow: auto;">
+      <table style="table-layout: fixed; width: max-content;">
+        <thead>
+          <tr>
+            <th style="width:70px; position: sticky; left:0; z-index:10; background:#f1f5f9;">Data</th>
+            ${sheet.machines.map(m => `
+              <th colspan="3" style="text-align:center; border-right:2px solid #cbd5e1; background:#e2e8f0; color:var(--navy); position:relative; min-width:120px;">
+                ${m.name}
+                <div style="font-size:9px; color:var(--text-muted)">R$ ${m.ratePerHour}/h</div>
+                <div class="resizer"></div>
+              </th>
+            `).join('')}
+          </tr>
+          <tr>
+            <th style="position: sticky; left:0; z-index:10; background:#f1f5f9;"></th>
+            ${sheet.machines.map(() => `
+              <th style="font-size:10px; text-align:center; width:50px;">Inic.</th>
+              <th style="font-size:10px; text-align:center; width:50px;">Final</th>
+              <th style="font-size:10px; text-align:center; width:45px; border-right:2px solid #cbd5e1">Total</th>
+            `).join('')}
+          </tr>
+        </thead>
+        <tbody>
+          ${sheet.dates.map((date, dIdx) => {
+            const bg = dIdx % 2 === 1 ? '#fdf9f0' : '#ffffff';
+            return `
+              <tr style="background:${bg}">
+                <td style="font-weight:700; position: sticky; left:0; z-index:5; background:${bg}; border-right:1px solid var(--border)">
+                  ${date}
+                  <button style="border:none;background:transparent;color:var(--danger);cursor:pointer;font-size:10px;margin-left:4px" onclick="deleteDateRow('${sheet.id}', ${dIdx})">×</button>
+                </td>
+                ${sheet.machines.map(m => {
+                  const r = m.readings[date] || { initial: '', final: '' };
+                  const diff = getHoursDiff(r.initial, r.final);
+                  return `
+                    <td><input style="width:100%; border:none; background:transparent; font-family:monospace; text-align:center; padding:0; margin:0; outline:none;" type="number" step="0.01" value="${r.initial}" onblur="confirmCellUpdate('${sheet.id}', '${m.id}', '${date}', 'initial', '${r.initial}', this.value)" onkeydown="if(event.key==='Enter')this.blur()"></td>
+                    <td><input style="width:100%; border:none; background:transparent; font-family:monospace; text-align:center; padding:0; margin:0; outline:none;" type="number" step="0.01" value="${r.final}" onblur="confirmCellUpdate('${sheet.id}', '${m.id}', '${date}', 'final', '${r.final}', this.value)" onkeydown="if(event.key==='Enter')this.blur()"></td>
+                    <td style="text-align:center; font-family:monospace; font-weight:700; background:rgba(0,0,0,0.02); border-right:2px solid #cbd5e1">${diff > 0 ? fmtNum(diff, 1) : '—'}</td>
+                  `;
+                }).join('')}
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    </div></div>
+  `;
+}
+
+function confirmCellUpdate(sheetId, machineId, date, field, originalValue, newValue) {
+  if (originalValue === newValue) return;
+  if (confirm(`Deseja realmente gravar a alteração de horímetro de "${originalValue || '-'}" para "${newValue || '-'}"?`)) {
+    const s = DATA.localities.find(l => l.id === sheetId);
+    if (s) {
+      const m = s.machines.find(x => x.id === machineId);
+      if (m) {
+        if (!m.readings[date]) m.readings[date] = { initial: '', final: '' };
+        m.readings[date][field] = newValue;
+        saveData();
+        renderView();
+        showToast('Horímetro gravado!', 'success');
+      }
+    }
+  } else {
+    renderView();
+  }
+}
+
+function openAddDateModal() {
+  const activeSheetId = localStorage.getItem('agrog_active_sheet') || (DATA.localities[0] ? DATA.localities[0].id : '');
+  openModal(`
+    <div class="modal-header"><h4>📅 Adicionar Data à Planilha</h4><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Data (Ex: 23/jun)</label>
+        <input id="new-date-str" class="form-control" placeholder="Ex: 23/jun">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveNewDate('${activeSheetId}')">Adicionar</button>
+    </div>
+  `);
+}
+
+function saveNewDate(sheetId) {
+  const dStr = document.getElementById('new-date-str').value;
+  if (!dStr) return;
+  const s = DATA.localities.find(l => l.id === sheetId);
+  if (s) {
+    if (!s.dates.includes(dStr)) {
+      s.dates.push(dStr);
+      saveData();
+    }
+    closeModal();
+    renderView();
+    showToast('Linha de data adicionada!', 'success');
+  }
+}
+
+function deleteDateRow(sheetId, dIdx) {
+  if (confirm('Deseja excluir esta linha de data e todas as leituras dela?')) {
+    const s = DATA.localities.find(l => l.id === sheetId);
+    if (s) {
+      const date = s.dates[dIdx];
+      s.dates.splice(dIdx, 1);
+      s.machines.forEach(m => {
+        delete m.readings[date];
+      });
+      saveData();
+      renderView();
+      showToast('Linha de data excluída!', 'success');
+    }
+  }
+}
+
+function openAddLocalityModal() {
+  openModal(`
+    <div class="modal-header"><h4>🏢 Nova Localidade / Fazenda</h4><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Nome da Localidade</label>
+        <input id="new-loc-name" class="form-control" placeholder="Ex: Sebastianópolis">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveNewLocality()">Criar Planilha</button>
+    </div>
+  `);
+}
+
+function saveNewLocality() {
+  const name = document.getElementById('new-loc-name').value;
+  if (!name) return;
+  const newId = 'sheet_' + Date.now();
+  DATA.localities.push({
+    id: newId,
+    name,
+    machines: [],
+    dates: ["09/jun", "10/jun", "11/jun", "12/jun", "13/jun", "14/jun", "15/jun", "16/jun", "17/jun", "18/jun", "19/jun", "20/jun", "21/jun", "22/jun"]
+  });
+  saveData();
+  localStorage.setItem('agrog_active_sheet', newId);
+  closeModal();
+  renderView();
+  showToast('Planilha criada com sucesso!', 'success');
+}
+
+function openAddMachineModal() {
+  const activeSheetId = localStorage.getItem('agrog_active_sheet') || (DATA.localities[0] ? DATA.localities[0].id : '');
+  const registeredMachines = DATA.vehicles.filter(v => v.type === 'Máquina' || v.type === 'Caminhão');
+
+  openModal(`
+    <div class="modal-header"><h4>＋ Adicionar Máquina à Planilha</h4><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Selecionar do Cadastro (Opcional)</label>
+        <select class="form-control" onchange="const found = DATA.vehicles.find(v => v.name === this.value); if(found) { document.getElementById('new-m-name').value = found.name; document.getElementById('new-m-rate').value = found.rate || ''; }">
+          <option value="">— Digitar Manualmente —</option>
+          ${registeredMachines.map(m => `<option value="${m.name}">${m.name} (${m.type} - R$ ${m.rate || 0}/h)</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Nome da Máquina *</label>
+        <input id="new-m-name" class="form-control" placeholder="Ex: AMOS SILAGEM">
+      </div>
+      <div class="form-group">
+        <label>Taxa por Hora (R$ / hora) *</label>
+        <input id="new-m-rate" type="number" class="form-control" placeholder="Ex: 900">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveNewMachine('${activeSheetId}')">Adicionar</button>
+    </div>
+  `);
+}
+
+function saveNewMachine(sheetId) {
+  const name = document.getElementById('new-m-name').value;
+  const rate = parseFloat(document.getElementById('new-m-rate').value);
+  if (!name || isNaN(rate)) { alert('Preencha os campos obrigatórios.'); return; }
+  
+  const s = DATA.localities.find(l => l.id === sheetId);
+  if (s) {
+    s.machines.push({
+      id: 'M_' + Date.now(),
+      name,
+      ratePerHour: rate,
+      readings: {}
+    });
+    saveData();
+    closeModal();
+    renderView();
+    showToast('Máquina adicionada!', 'success');
+  }
+}
+
+// ===== 4. LANÇAR PRODUÇÃO VIEW =====
+function startEditProduction(id) {
+  editProductionId = id;
+  renderView();
+}
+
+function cancelEditProduction() {
+  editProductionId = null;
+  renderView();
+}
+
+function renderProduction() {
+  const list = [...DATA.producoes].reverse();
+  const ep = editProductionId ? DATA.producoes.find(x => x.id === editProductionId) : null;
+
+  return `
+    <div class="page-title">
+      <div>
+        <h3>Lançamento de Produção Diária</h3>
+        <p>Cadastre ou edite os apontamentos de colheita diários da lavoura</p>
+      </div>
+    </div>
+
+    <div class="grid-12">
+      <!-- Input Form -->
+      <div class="col-4 card">
+        <div class="card-header">
+          <h4>${ep ? '✏️ Editar' : '＋ Novo'} Apontamento de Safra</h4>
+        </div>
+        <div class="card-body">
+          <div class="form-error" id="p-error" style="display:none"></div>
+          
+          <div class="form-group">
+            <label>Data da Colheita *</label>
+            <input type="date" id="p-date" class="form-control" value="${ep ? ep.date : todayISO()}">
+          </div>
+
+          <div class="form-group">
+            <label>Área / Fazenda *</label>
+            <select id="p-area" class="form-control">
+              <option value="">Selecione...</option>
+              ${DATA.areas.map(a => `<option value="${a.id}" ${ep?.areaId === a.id ? 'selected' : ''}>${a.name} (${a.culture})</option>`).join('')}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Máquina Utilizada *</label>
+            <select id="p-maq" class="form-control">
+              <option value="">Selecione...</option>
+              ${DATA.maquinas.map(m => `<option value="${m.id}" ${ep?.maquinaId === m.id ? 'selected' : ''}>${m.name}</option>`).join('')}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Motorista / Operador *</label>
+            <select id="p-mot" class="form-control">
+              <option value="">Selecione...</option>
+              ${DATA.motoristas.map(m => `<option value="${m.id}" ${ep?.motoristaId === m.id ? 'selected' : ''}>${m.name}</option>`).join('')}
+            </select>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Hectares *</label>
+              <input type="number" step="0.01" id="p-ha" class="form-control" placeholder="Ex: 10" value="${ep ? ep.hectares : ''}">
+            </div>
+            <div class="form-group">
+              <label>Toneladas *</label>
+              <input type="number" step="0.01" id="p-ton" class="form-control" placeholder="Ex: 85" value="${ep ? ep.toneladas : ''}">
+            </div>
+          </div>
+
+          ${ep ? `
+            <div style="display:flex; gap:8px; margin-top:8px">
+              <button class="btn btn-outline" onclick="cancelEditProduction()" style="flex:1; justify-content:center">Cancelar</button>
+              <button class="btn btn-primary" onclick="saveProduction()" style="flex:1; justify-content:center">Salvar</button>
+            </div>
+          ` : `
+            <button class="btn btn-primary" onclick="saveProduction()" style="width:100%; justify-content:center; margin-top:8px">Gravar Produção</button>
+          `}
+        </div>
+      </div>
+
+      <!-- Table list -->
+      <div class="col-8 card">
+        <div class="card-header">
+          <h4>Apontamentos Gravados</h4>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Semana</th>
+                <th>Área / Fazenda</th>
+                <th>Máquina</th>
+                <th>Motorista</th>
+                <th style="text-align:right">Hectares</th>
+                <th style="text-align:right">Toneladas</th>
+                <th style="text-align:right">Rendimento</th>
+                <th style="text-align:center">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${list.map((p, idx) => {
+                const yieldRate = p.hectares > 0 ? p.toneladas / p.hectares : 0;
+                const bg = idx % 2 === 1 ? '#fdf9f0' : '#ffffff';
+                return `
+                  <tr style="background:${bg}; border-bottom:1px solid #cbd5e1">
+                    <td style="font-family:monospace;font-weight:600">${p.date.split('-').reverse().join('/')}</td>
+                    <td style="color:var(--text-muted)">${p.semana}</td>
+                    <td style="font-weight:700;color:var(--primary-dark)">${areaName(p.areaId)}</td>
+                    <td><span class="badge" style="${getEntityColor(maquinaName(p.maquinaId))}">${maquinaName(p.maquinaId)}</span></td>
+                    <td><span class="badge" style="${getEntityColor(motoristaName(p.motoristaId))}">${motoristaName(p.motoristaId)}</span></td>
+                    <td style="text-align:right;font-family:monospace">${fmtNum(p.hectares)} ha</td>
+                    <td style="text-align:right;font-family:monospace;font-weight:700">${fmtNum(p.toneladas)} t</td>
+                    <td style="text-align:right;font-family:monospace;color:var(--primary);font-weight:700">${fmtNum(yieldRate)} t/ha</td>
+                    <td style="text-align:center">
+                      <div style="display:flex;gap:4px;justify-content:center">
+                        <button class="btn-icon" onclick="startEditProduction('${p.id}')" title="Editar lançamento">✏️</button>
+                        <button class="btn-icon danger" onclick="deleteProduction('${p.id}')" title="Excluir lançamento">🗑️</button>
+                      </div>
+                    </td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function saveProduction() {
+  const err = document.getElementById('p-error');
+  err.style.display = 'none';
+
+  const date = document.getElementById('p-date').value;
+  const areaId = document.getElementById('p-area').value;
+  const maquinaId = document.getElementById('p-maq').value;
+  const motoristaId = document.getElementById('p-mot').value;
+  const hectares = parseFloat(document.getElementById('p-ha').value);
+  const toneladas = parseFloat(document.getElementById('p-ton').value);
+
+  if (!date || !areaId || !maquinaId || !motoristaId || isNaN(hectares) || isNaN(toneladas)) {
+    err.textContent = 'Preencha todos os campos obrigatórios.';
+    err.style.display = 'block';
+    return;
+  }
+
+  if (editProductionId) {
+    const idx = DATA.producoes.findIndex(p => p.id === editProductionId);
+    if (idx >= 0) {
+      DATA.producoes[idx] = {
+        id: editProductionId,
+        date,
+        semana: getWeekString(date),
+        areaId,
+        maquinaId,
+        motoristaId,
+        hectares,
+        toneladas
+      };
+      showToast('Lançamento atualizado!', 'success');
+    }
+    editProductionId = null;
+  } else {
+    const newProd = {
+      id: 'P_' + Date.now(),
+      date,
+      semana: getWeekString(date),
+      areaId,
+      maquinaId,
+      motoristaId,
+      hectares,
+      toneladas
+    };
+    DATA.producoes.push(newProd);
+    showToast('Lançamento registrado!', 'success');
+  }
+
+  saveData();
+  renderView();
+}
+
+function deleteProduction(id) {
+  if (confirm('Excluir este lançamento de produção permanentemente?')) {
+    DATA.producoes = DATA.producoes.filter(p => p.id !== id);
+    if (editProductionId === id) editProductionId = null;
+    saveData();
+    renderView();
+    showToast('Lançamento excluído!', 'success');
+  }
+}
+
+// ===== 5. FECHAMENTO SEMANAL / RELATÓRIOS VIEW =====
+let fSem = 'all', fArea = 'all', fMaq = 'all', fMot = 'all';
+
+function renderPayments() {
+  const weeks = [...new Set(DATA.producoes.map(p=>p.semana))].sort().reverse();
+  const filtered = DATA.producoes.filter(p => {
+    const matchesSem = fSem === 'all' || p.semana === fSem;
+    const matchesArea = fArea === 'all' || p.areaId === fArea;
+    const matchesMaq = fMaq === 'all' || p.maquinaId === fMaq;
+    const matchesMot = fMot === 'all' || p.motoristaId === fMot;
+    return matchesSem && matchesArea && matchesMaq && matchesMot;
+  });
+
+  let tHa = 0, tTon = 0, tPay = 0;
+  filtered.forEach(p => {
+    const rate = motoristaRate(p.motoristaId);
+    tHa += p.hectares;
+    tTon += p.toneladas;
+    tPay += p.hectares * rate;
+  });
+  const avgYield = tHa > 0 ? tTon / tHa : 0;
+
+  return `
+    <div class="page-title">
+      <div>
+        <h3>Relatórios de Fechamento Semanal</h3>
+        <p>Valores consolidados com base nos hectares trabalhados pelos motoristas. Use os filtros e exporte para Excel/CSV.</p>
+      </div>
+      <button class="btn btn-primary" onclick="exportFilteredReportCSV()">📥 Exportar Relatório</button>
+    </div>
+
+    <div class="filters">
+      <div class="filter-group">
+        <label>Semana Agrícola</label>
+        <select class="filter-select" id="f-semana" onchange="applyFilters()">
+          <option value="all" ${fSem==='all'?'selected':''}>Todas as Semanas</option>
+          ${weeks.map(w => `<option value="${w}" ${fSem===w?'selected':''}>${w}</option>`).join('')}
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Fazenda</label>
+        <select class="filter-select" id="f-area" onchange="applyFilters()">
+          <option value="all" ${fArea==='all'?'selected':''}>Todas as Áreas</option>
+          ${DATA.areas.map(a => `<option value="${a.id}" ${fArea===a.id?'selected':''}>${a.name}</option>`).join('')}
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Máquina</label>
+        <select class="filter-select" id="f-maquina" onchange="applyFilters()">
+          <option value="all" ${fMaq==='all'?'selected':''}>Todas as Máquinas</option>
+          ${DATA.maquinas.map(m => `<option value="${m.id}" ${fMaq===m.id?'selected':''}>${m.name}</option>`).join('')}
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Motorista</label>
+        <select class="filter-select" id="f-motorista" onchange="applyFilters()">
+          <option value="all" ${fMot==='all'?'selected':''}>Todos os Motoristas</option>
+          ${DATA.motoristas.map(m => `<option value="${m.id}" ${fMot===m.id?'selected':''}>${m.name}</option>`).join('')}
+        </select>
+      </div>
+      <button class="btn btn-outline" onclick="clearFilters()" style="height:38px">Limpar Filtros</button>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi green">
+        <div class="kpi-label">Hectares Totais</div>
+        <div class="kpi-value">${fmtNum(tHa)} ha</div>
+      </div>
+      <div class="kpi green">
+        <div class="kpi-label">Toneladas Totais</div>
+        <div class="kpi-value">${fmtNum(tTon)} t</div>
+      </div>
+      <div class="kpi green">
+        <div class="kpi-label">Rendimento</div>
+        <div class="kpi-value">${fmtNum(avgYield)} t/ha</div>
+      </div>
+      <div class="kpi red" style="background:rgba(239,68,68,0.02)">
+        <div class="kpi-label">Total a Pagar</div>
+        <div class="kpi-value" style="color:var(--danger)">${fmtBRL(tPay)}</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Semana</th>
+              <th>Data</th>
+              <th>Área / Fazenda</th>
+              <th>Máquina</th>
+              <th>Motorista</th>
+              <th style="text-align:right">Hectares</th>
+              <th style="text-align:right">Toneladas</th>
+              <th style="text-align:right">Rendimento</th>
+              <th style="text-align:right">Tarifa</th>
+              <th style="text-align:right">Pagamento</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${filtered.map((p, idx) => {
+              const rate = motoristaRate(p.motoristaId);
+              const pay = p.hectares * rate;
+              const yieldRate = p.hectares > 0 ? p.toneladas / p.hectares : 0;
+              const bg = idx % 2 === 1 ? '#fdf9f0' : '#ffffff';
+              return `
+                <tr style="background:${bg}; border-bottom:1px solid #cbd5e1">
+                  <td style="color:var(--text-muted);font-weight:600">${p.semana}</td>
+                  <td style="font-family:monospace">${p.date.split('-').reverse().join('/')}</td>
+                  <td style="font-weight:700;color:var(--primary-dark)">${areaName(p.areaId)}</td>
+                  <td><span class="badge" style="${getEntityColor(maquinaName(p.maquinaId))}">${maquinaName(p.maquinaId)}</span></td>
+                  <td><span class="badge" style="${getEntityColor(motoristaName(p.motoristaId))}">${motoristaName(p.motoristaId)}</span></td>
+                  <td style="text-align:right;font-family:monospace">${fmtNum(p.hectares)} ha</td>
+                  <td style="text-align:right;font-family:monospace">${fmtNum(p.toneladas)} t</td>
+                  <td style="text-align:right;font-family:monospace;color:var(--text-muted)">${fmtNum(yieldRate)} t/ha</td>
+                  <td style="text-align:right;font-family:monospace">${fmtBRL(rate)}/ha</td>
+                  <td style="text-align:right;font-family:monospace;font-weight:800;color:var(--danger)">${fmtBRL(pay)}</td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+function applyFilters() {
+  fSem = document.getElementById('f-semana').value;
+  fArea = document.getElementById('f-area').value;
+  fMaq = document.getElementById('f-maquina').value;
+  fMot = document.getElementById('f-motorista').value;
+  renderView();
+}
+
+function clearFilters() {
+  fSem = 'all'; fArea = 'all'; fMaq = 'all'; fMot = 'all';
+  renderView();
+}
+
+function exportFilteredReportCSV() {
+  const filtered = DATA.producoes.filter(p => {
+    const matchesSem = fSem === 'all' || p.semana === fSem;
+    const matchesArea = fArea === 'all' || p.areaId === fArea;
+    const matchesMaq = fMaq === 'all' || p.maquinaId === fMaq;
+    const matchesMot = fMot === 'all' || p.motoristaId === fMot;
+    return matchesSem && matchesArea && matchesMaq && matchesMot;
+  });
+
+  const csvRows = [];
+  csvRows.push("RELATORIO FILTRADO DE PAGAMENTO E PRODUCAO");
+  csvRows.push(`Exportado em:;${new Date().toLocaleString('pt-BR')}`);
+  csvRows.push("");
+  csvRows.push("Semana;Data;Area/Fazenda;Maquina;Motorista;Hectares;Toneladas;Rendimento (t/ha);Tarifa R$/ha;Pagamento R$");
+
+  filtered.forEach(p => {
+    const rate = motoristaRate(p.motoristaId);
+    const pay = p.hectares * rate;
+    const yieldRate = p.hectares > 0 ? p.toneladas / p.hectares : 0;
+    csvRows.push(
+      `"${p.semana}";"${p.date.split('-').reverse().join('/')}";"${areaName(p.areaId)}";"${maquinaName(p.maquinaId)}";"${motoristaName(p.motoristaId)}";${p.hectares.toLocaleString('pt-BR')};${p.toneladas.toLocaleString('pt-BR')};${yieldRate.toLocaleString('pt-BR')};${rate.toLocaleString('pt-BR')};${pay.toLocaleString('pt-BR')}`
+    );
+  });
+
+  const blob = new Blob(["\uFEFF" + csvRows.join("\n")], {type: 'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `relatorio_fechamento_export_${Date.now()}.csv`;
+  a.click();
+}
+
+// ===== 6. SAFRA METRICS DASHBOARD VIEW =====
+function renderSafraDashboard() {
+  let totalTons = 0;
+  let totalHa = 0;
+  DATA.producoes.forEach(p => {
+    totalTons += p.toneladas;
+    totalHa += p.hectares;
+  });
+  const avgYield = totalHa > 0 ? totalTons / totalHa : 0;
+
+  const areaTotals = {};
+  DATA.areas.forEach(a => {
+    areaTotals[a.id] = { name: a.name, culture: a.culture, toneladas: 0, hectares: 0 };
+  });
+  DATA.producoes.forEach(p => {
+    if (areaTotals[p.areaId]) {
+      areaTotals[p.areaId].toneladas += p.toneladas;
+      areaTotals[p.areaId].hectares += p.hectares;
+    }
+  });
+
+  const chartData = Object.entries(areaTotals).map(([id, val]) => ({
+    name: val.name,
+    culture: val.culture,
+    toneladas: val.toneladas,
+    hectares: val.hectares,
+    yield: val.hectares > 0 ? val.toneladas / val.hectares : 0
+  })).sort((a,b) => b.toneladas - a.toneladas);
+
+  const maxTons = Math.max(...chartData.map(d=>d.toneladas), 1);
+  const colors = ['#047857', '#059669', '#10b981', '#34d399'];
+
+  return `
+    <div class="page-title">
+      <div>
+        <h3>Painel Geral de Produtividade (Safra)</h3>
+        <p>Visão geral de produtividade por área colhida</p>
+      </div>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi green">
+        <div class="kpi-label">Toneladas Safra</div>
+        <div class="kpi-value">${fmtNum(totalTons)} t</div>
+      </div>
+      <div class="kpi green">
+        <div class="kpi-label">Produtividade Safra</div>
+        <div class="kpi-value" style="color:var(--primary)">${fmtNum(avgYield)} t/ha</div>
+      </div>
+      <div class="kpi green">
+        <div class="kpi-label">Área Colhida</div>
+        <div class="kpi-value">${fmtNum(totalHa)} ha</div>
+      </div>
+    </div>
+
+    <div class="grid-12">
+      <div class="col-8 card">
+        <div class="card-header"><h4>📊 Produção Total (t) por Área</h4></div>
+        <div class="card-body" style="display:flex; flex-direction:column; gap:20px;">
+          ${chartData.map((item, idx) => {
+            const barWidth = (item.toneladas / maxTons) * 100;
+            const percent = totalTons > 0 ? (item.toneladas / totalTons) * 100 : 0;
+            return `
+              <div>
+                <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:700; margin-bottom:5px">
+                  <span>🌾 ${item.name} (${item.culture})</span>
+                  <span style="font-family:monospace">${fmtNum(item.toneladas)} t (${percent.toFixed(1)}%)</span>
+                </div>
+                <div style="background:#e2e8f0; height:18px; border-radius:30px; overflow:hidden;">
+                  <div style="background:${colors[idx % colors.length]}; width:${barWidth}%; height:100%; border-radius:30px;"></div>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+      <div class="col-4 card">
+        <div class="card-header"><h4>Fazendas Detalhado</h4></div>
+        <div class="card-body" style="display:flex; flex-direction:column; gap:12px;">
+          ${chartData.map(item => `
+            <div style="border-bottom:1px solid var(--border); padding-bottom:8px">
+              <div style="display:flex; justify-content:space-between; font-weight:700; font-size:11px">
+                <span>${item.name}</span>
+                <span style="color:var(--primary-light)">${fmtNum(item.yield)} t/ha</span>
+              </div>
+              <div style="display:flex; justify-content:space-between; font-size:10px; color:var(--text-muted); margin-top:2px">
+                <span>Hectares: ${fmtNum(item.hectares)} ha</span>
+                <span>Cultura: ${item.culture}</span>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ===== 7. EXPENSES VIEW =====
+function renderExpenses() {
+  const qType = document.getElementById('exp-type-filter')?.value || 'all';
+  const qLoc = document.getElementById('exp-loc-filter')?.value || 'all';
+  const qSort = document.getElementById('exp-sort-filter')?.value || 'desc';
+
+  let items = [...DATA.expenses];
+  if (qType !== 'all') items = items.filter(e => e.type === qType);
+  if (qLoc !== 'all') items = items.filter(e => e.locality === qLoc || e.localityName === qLoc);
+
+  if (qSort === 'desc') {
+    items.sort((a,b) => b.date.localeCompare(a.date));
+  } else {
+    items.sort((a,b) => a.date.localeCompare(b.date));
+  }
+
+  const total = items.reduce((s, e) => s + e.value, 0);
+
+  const types = [...new Set(DATA.expenses.map(e => e.type))];
+  const locs = [...new Set(DATA.expenses.map(e => e.locality || e.localityName).filter(Boolean))];
+
+  return `
+    <div class="page-title">
+      <div>
+        <h3>Controle de Despesas</h3>
+        <p>${DATA.expenses.length} lançamentos operacionais de despesa cadastrados</p>
+      </div>
+      <button class="btn btn-primary" onclick="openExpenseModal()">＋ Lançar Despesa</button>
+    </div>
+
+    <div class="filters">
+      <div class="filter-group">
+        <label>Tipo de Despesa</label>
+        <select class="filter-select" id="exp-type-filter" onchange="renderView()">
+          <option value="all" ${qType==='all'?'selected':''}>Todos os Tipos</option>
+          ${types.map(t => `<option value="${t}" ${qType===t?'selected':''}>${t.charAt(0).toUpperCase()+t.slice(1)}</option>`).join('')}
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Localidade</label>
+        <select class="filter-select" id="exp-loc-filter" onchange="renderView()">
+          <option value="all" ${qLoc==='all'?'selected':''}>Todas as Localidades</option>
+          ${locs.map(l => `<option value="${l}" ${qLoc===l?'selected':''}>${l}</option>`).join('')}
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Ordenação</label>
+        <select class="filter-select" id="exp-sort-filter" onchange="renderView()">
+          <option value="desc" ${qSort==='desc'?'selected':''}>📅 Mais recentes primeiro</option>
+          <option value="asc" ${qSort==='asc'?'selected':''}>📅 Mais antigas primeiro</option>
+        </select>
+      </div>
+      <div style="margin-left:auto; display:flex; align-items:center; gap:8px;">
+        <span style="font-size:.68rem; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:.05em">Total Filtrado:</span>
+        <span style="font-size:0.95rem; font-weight:900; color:#b91c1c; background:#fef2f2; border:1px solid #fee2e2; padding:5px 15px; border-radius:30px; font-family:monospace;">${fmtBRL(total)}</span>
+      </div>
+    </div>
+
+    <div class="card"><div class="card-body table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th onclick="toggleExpensesSort()" style="cursor:pointer; user-select:none" title="Clique para ordenar">Data ${qSort==='desc'?'▼':'▲'}</th>
+            <th>Tipo</th>
+            <th>Valor</th>
+            <th>Máquina/Veículo</th>
+            <th>Motorista</th>
+            <th>Localidade</th>
+            <th style="text-align:center">Ação</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${items.map(e => {
+            const getBadgeStyle = (typeStr) => {
+              const t = (typeStr || '').toLowerCase().trim();
+              if (t === 'diesel') return 'background:#ecfdf5; color:#065f46; border:1px solid #d1fae5;';
+              if (t === 'gasolina') return 'background:#e0e7ff; color:#3730a3; border:1px solid #c7d2fe;';
+              if (t === 'alimentação') return 'background:#fef3c7; color:#92400e; border:1px solid #fde68a;';
+              if (t === 'manutenção') return 'background:#ffe4e6; color:#9f1239; border:1px solid #fecdd3;';
+              if (t === 'hospedagem') return 'background:#e0f2fe; color:#075985; border:1px solid #bae6fd;';
+              if (t === 'pedágio') return 'background:#fce7f3; color:#9d174d; border:1px solid #fbcfe8;';
+              if (t === 'abastecimento') return 'background:#ffedd5; color:#9a3412; border:1px solid #fed7aa;';
+              return 'background:#f1f5f9; color:#334155; border:1px solid #e2e8f0;';
+            };
+            return `
+              <tr style="background:#ffffff; border-bottom: 1px solid var(--border)">
+                <td style="font-family:monospace; font-weight:600">${e.date.split('-').reverse().join('/')}</td>
+                <td><span class="badge" style="${getBadgeStyle(e.type)}">${e.type}</span></td>
+                <td style="font-weight:700;color:var(--text);font-family:monospace">${fmtBRL(e.value)}</td>
+                <td>${e.machineName || e.machine ? `<span class="badge" style="${getEntityColor(e.machineName || e.machine)}">${e.machineName || e.machine}</span>` : '—'}</td>
+                <td>${e.responsibleName || e.driver ? `<span class="badge" style="${getEntityColor(e.responsibleName || e.driver)}">${e.responsibleName || e.driver}</span>` : '—'}</td>
+                <td><span class="badge badge-gray">${e.localityName || e.locality || '—'}</span></td>
+                <td style="text-align:center">
+                  <button class="btn-icon danger" onclick="deleteExpense('${e.id}')">🗑️</button>
+                </td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    </div></div>
+  `;
+}
+
+function toggleExpensesSort() {
+  const select = document.getElementById('exp-sort-filter');
+  if (select) {
+    select.value = select.value === 'desc' ? 'asc' : 'desc';
+    renderView();
+  }
+}
+
+function openExpenseModal() {
+  const machs = DATA.vehicles.filter(v => v.type !== 'Cliente/Setor').map(v => v.name);
+  const drvs = [...new Set(DATA.vehicles.map(v => v.responsible).filter(r => r && r !== '-'))];
+  const locs = DATA.localities.map(l => l.name);
+
+  openModal(`
+    <div class="modal-header"><h4>＋ Novo Lançamento de Gasto</h4><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <div id="form-error" class="form-error" style="display:none"></div>
+      <div class="form-group">
+        <label>Data *</label>
+        <input type="date" id="e-date" class="form-control" value="${todayISO()}">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Tipo *</label>
+          <select id="e-type" class="form-control">
+            <option value="diesel">Diesel</option>
+            <option value="alimentação">Alimentação</option>
+            <option value="gasolina">Gasolina</option>
+            <option value="pedágio">Pedágio</option>
+            <option value="hospedagem">Hospedagem</option>
+            <option value="manutenção">Manutenção</option>
+            <option value="abastecimento">Abastecimento</option>
+            <option value="outro">Outro</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Valor R$ *</label>
+          <input type="number" step="0.01" id="e-val" class="form-control" placeholder="Ex: 250">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Máquina Vinculada</label>
+          <select id="e-maq" class="form-control">
+            <option value="">— Nenhuma —</option>
+            ${machs.map(m => `<option value="${m}">${m}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Motorista Responsável</label>
+          <select id="e-drv" class="form-control">
+            <option value="">— Nenhum —</option>
+            ${drvs.map(d => `<option value="${d}">${d}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Localidade / Fazenda</label>
+        <select id="e-loc" class="form-control">
+          <option value="">— Nenhuma —</option>
+          ${locs.map(l => `<option value="${l}">${l}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveExpense()">Gravar</button>
+    </div>
+  `);
+}
+
+function saveExpense() {
+  const err = document.getElementById('form-error');
+  err.style.display = 'none';
+  
+  const date = document.getElementById('e-date').value;
+  const type = document.getElementById('e-type').value;
+  const value = parseFloat(document.getElementById('e-val').value);
+
+  if (!date || isNaN(value) || value <= 0) {
+    err.textContent = 'Data e valor válidos são obrigatórios.';
+    err.style.display = 'block';
+    return;
+  }
+
+  DATA.expenses.push({
+    id: 'E_' + Date.now(),
+    date,
+    type,
+    value,
+    machineName: document.getElementById('e-maq').value,
+    responsibleName: document.getElementById('e-drv').value,
+    localityName: document.getElementById('e-loc').value
+  });
+  
+  saveData();
+  closeModal();
+  renderView();
+  showToast('Despesa gravada com sucesso!', 'success');
+}
+
+function deleteExpense(id) {
+  if (confirm('Deseja excluir esta despesa?')) {
+    DATA.expenses = DATA.expenses.filter(e => e.id !== id);
+    saveData();
+    renderView();
+    showToast('Despesa excluída!', 'success');
+  }
+}
+
+// ===== 8. SETTINGS VIEW =====
+function renderSettings() {
+  return `
+    <div class="page-title">
+      <div>
+        <h3>Configurações do Sistema</h3>
+        <p>Controle do banco de dados local do navegador</p>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header"><h4>📊 Dados Locais Armazenados</h4></div>
+        <div class="card-body">
+          <table>
+            <tbody>
+              <tr><td>Folhas de Fechamento (Horas)</td><td style="text-align:right;font-weight:700">${DATA.localities.length}</td></tr>
+              <tr><td>Cadastro de Veículos</td><td style="text-align:right;font-weight:700">${DATA.vehicles.length}</td></tr>
+              <tr><td>Despesas Lançadas</td><td style="text-align:right;font-weight:700">${DATA.expenses.length}</td></tr>
+              <tr><td>Lançamentos de Safra</td><td style="text-align:right;font-weight:700">${DATA.producoes.length}</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h4>⚙️ Backup e Manutenção</h4></div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:12px">
+          <div>
+            <button class="btn btn-outline" onclick="exportData()" style="width:100%">📥 Exportar Backup JSON</button>
+          </div>
+          <div>
+            <label class="btn btn-outline" style="cursor:pointer;width:100%;justify-content:center">
+              📤 Importar Backup JSON
+              <input type="file" accept=".json" style="display:none" onchange="importData(event)">
+            </label>
+          </div>
+          <div style="border-top:1px solid var(--border);padding-top:12px">
+            <label class="btn btn-primary" style="cursor:pointer;width:100%;justify-content:center;background:#10b981;color:#fff">
+              📊 Importar Planilha Excel (.xlsx)
+              <input type="file" accept=".xlsx,.xls" style="display:none" onchange="importExcelData(event)">
+            </label>
+          </div>
+          <div style="margin-top:12px;border-top:1px solid var(--border);padding-top:12px">
+            <button class="btn btn-danger" onclick="resetDatabase()" style="width:100%">🔄 Redefinir Banco de Dados</button>
+            <div style="font-size:9px;color:var(--text-light);margin-top:4px">Restaurar dados originais de fábrica do Excel.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function exportData() {
+  const blob = new Blob([JSON.stringify(DATA, null, 2)], {type: 'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `agrogestao_backup_${todayISO()}.json`;
+  a.click();
+  showToast('Dados exportados!', 'success');
+}
+
+function importData(ev) {
+  const file = ev.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const d = JSON.parse(e.target.result);
+      if (d.vehicles && d.localities && d.expenses) {
+        DATA = d;
+        saveData();
+        renderView();
+        showToast('Dados importados!', 'success');
+      } else {
+        alert('JSON inválido.');
+      }
+    } catch(err) {
+      alert('Erro ao ler JSON: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+function importExcelData(ev) {
+  const file = ev.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, {type: 'array'});
+      
+      const newVehicles = [...DATA.vehicles];
+      const newLocalities = [...DATA.localities];
+      const newExpenses = [...DATA.expenses];
+      const newMotoristas = [...DATA.motoristas];
+      const newAreas = [...DATA.areas];
+      const newMaquinas = [...DATA.maquinas];
+
+      const findOrCreateDriver = (name) => {
+        const normalized = name.toLowerCase().trim();
+        let found = newMotoristas.find(m => m.name.toLowerCase().trim() === normalized);
+        if (!found) {
+          found = {
+            id: 'D' + (newMotoristas.length + 1).toString().padStart(2, '0') + '_' + Math.floor(Math.random()*100),
+            name: name.trim(),
+            ratePerHectare: 50.00,
+            status: 'Ativo'
+          };
+          newMotoristas.push(found);
+        }
+      };
+
+      const getDriverNameForMachine = (machineName) => {
+        const d = machineName.toLowerCase();
+        if (d.includes('rogerio')) return 'Rogério';
+        if (d.includes('marcos')) return 'Marcos';
+        if (d.includes('chico')) return 'Chico';
+        if (d.includes('rodrigo')) return 'Rodrigo';
+        if (d.includes('leonir')) return 'Leonir';
+        if (d.includes('cowboy')) return 'Cowboy';
+        if (d.includes('bigode')) return 'Bigode';
+        if (d.includes('eduardo')) return 'Eduardo';
+        return null;
+      };
+
+      const findOrCreateVehicle = (name, rate) => {
+        const normalized = name.toLowerCase().replace(/\s/g, '');
+        let found = newVehicles.find(v => v.name.toLowerCase().replace(/\s/g, '') === normalized);
+        if (!found) {
+          let vType = 'Máquina';
+          if (name.toLowerCase().includes('caminhão') || name.toLowerCase().includes('volks') || name.toLowerCase().includes('cargo') || name.toLowerCase().includes('mula') || name.toLowerCase().includes('rodrigo') || name.toLowerCase().includes('bigode') || name.toLowerCase().includes('eduardo') || name.toLowerCase().includes('1620') || name.toLowerCase().includes('constellation') || name.toLowerCase().includes('carreta')) {
+            vType = 'Caminhão';
+          }
+          found = {
+            id: 'V' + (newVehicles.length + 1).toString().padStart(2, '0') + '_' + Math.floor(Math.random()*100),
+            name: name.trim(),
+            type: vType,
+            details: vType + ' importado via Excel',
+            plateOrFleet: 'FROTA-' + name.toUpperCase().replace(/\s/g, ''),
+            responsible: getDriverNameForMachine(name) || '-',
+            status: 'Ativo',
+            rate: rate || 0
+          };
+          newVehicles.push(found);
+
+          newMaquinas.push({
+            id: 'MA' + (newMaquinas.length + 1).toString().padStart(2, '0') + '_' + Math.floor(Math.random()*100),
+            name: name.trim(),
+            type: vType === 'Caminhão' ? 'Caminhão' : 'Trator'
+          });
+        } else {
+          if (rate && (!found.rate || found.rate === 0)) {
+            found.rate = rate;
+          }
+        }
+        return found;
+      };
+
+      const excelDateToDateStr = (excelDate) => {
+        const date = new Date((excelDate - 25569) * 86400 * 1000);
+        const day = String(date.getUTCDate()).padStart(2, '0');
+        const months = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+        const month = months[date.getUTCMonth()];
+        return day + '/' + month;
+      };
+
+      const excelDateToISO = (excelDate) => {
+        const date = new Date((excelDate - 25569) * 86400 * 1000);
+        return date.toISOString().split('T')[0];
+      };
+
+      workbook.SheetNames.forEach((sheetName) => {
+        if (sheetName.toLowerCase().includes('matriz') || sheetName.toLowerCase().includes('acerto') || sheetName.toLowerCase().includes('planilha')) {
+          return;
+        }
+
+        const sheet = workbook.Sheets[sheetName];
+        const dataRows = XLSX.utils.sheet_to_json(sheet, {header: 1, defval: ''});
+        if (dataRows.length < 5) return;
+
+        let headerRowIdx = -1;
+        for (let rIdx = 0; rIdx < dataRows.length; rIdx++) {
+          const row = dataRows[rIdx];
+          if (row && row.some(cell => typeof cell === 'string' && cell.toLowerCase().includes('hora inicial'))) {
+            headerRowIdx = rIdx - 1;
+            break;
+          }
+        }
+
+        if (headerRowIdx === -1) return;
+
+        const sheetMachines = [];
+        const headerRow = dataRows[headerRowIdx];
+
+        for (let col = 1; col < headerRow.length; col += 3) {
+          const mName = headerRow[col];
+          const rate = parseFloat(headerRow[col + 2]) || 0;
+          const mNameStr = String(mName || '').trim();
+
+          if (mNameStr === '') break;
+
+          const mNameLower = mNameStr.toLowerCase();
+          if (mNameLower.includes('data') || mNameLower.includes('despesa') || mNameLower.includes('descri') || mNameLower.includes('coluna') || mNameLower.includes('valor')) {
+            continue;
+          }
+
+          const cleanedName = mNameStr.replace(/\s+/g, ' ');
+          const driverName = getDriverNameForMachine(cleanedName);
+          if (driverName) findOrCreateDriver(driverName);
+
+          const vehicle = findOrCreateVehicle(cleanedName, rate);
+          sheetMachines.push({
+            name: cleanedName,
+            ratePerHour: rate || vehicle.rate || 0,
+            colIdx: col
+          });
+        }
+
+        // Area / Fazenda
+        const areaId = 'A' + (newAreas.length + 1).toString().padStart(2, '0') + '_' + Math.floor(Math.random()*100);
+        if (!newAreas.some(a => a.name.toLowerCase().trim() === sheetName.toLowerCase().trim())) {
+          newAreas.push({
+            id: areaId,
+            name: sheetName.trim(),
+            culture: 'Silagem',
+            sizeHectares: 150
+          });
+        }
+
+        // LocalitySheet
+        const sheetId = sheetName.toLowerCase().trim().replace(/\s+/g, '-');
+        let localSheet = newLocalities.find(s => s.id === sheetId);
+        if (!localSheet) {
+          localSheet = {
+            id: sheetId,
+            name: sheetName.trim(),
+            machines: [],
+            dates: []
+          };
+          newLocalities.push(localSheet);
+        }
+
+        sheetMachines.forEach((sm) => {
+          let machConfig = localSheet.machines.find(m => m.name.toLowerCase() === sm.name.toLowerCase());
+          if (!machConfig) {
+            machConfig = {
+              id: 'M_' + Date.now() + '_' + Math.floor(Math.random()*100),
+              name: sm.name,
+              ratePerHour: sm.ratePerHour,
+              readings: {}
+            };
+            localSheet.machines.push(machConfig);
+          }
+        });
+
+        for (let rIdx = headerRowIdx + 2; rIdx < dataRows.length; rIdx++) {
+          const row = dataRows[rIdx];
+          if (!row || typeof row[0] !== 'number' || row[0] < 40000) continue;
+
+          const dateStr = excelDateToDateStr(row[0]);
+          if (!localSheet.dates.includes(dateStr)) {
+            localSheet.dates.push(dateStr);
+          }
+
+          sheetMachines.forEach((sm) => {
+            const initVal = row[sm.colIdx];
+            const finVal = row[sm.colIdx + 1];
+
+            if (initVal !== '' && finVal !== '' && initVal !== undefined && finVal !== undefined) {
+              const machConfig = localSheet.machines.find(m => m.name.toLowerCase() === sm.name.toLowerCase());
+              if (machConfig) {
+                machConfig.readings[dateStr] = {
+                  initial: String(initVal),
+                  final: String(finVal)
+                };
+              }
+            }
+          });
+
+          // Expenses
+          if (row.length > 17 && row[16] !== '' && row[17] !== '') {
+            const expDateExcel = row[16];
+            const expType = String(row[17]).toLowerCase().trim();
+            const expDesc = String(row[18] || '').trim();
+            const expVal = parseFloat(row[19]) || 0;
+
+            if (typeof expDateExcel === 'number' && expDateExcel > 40000 && expVal > 0) {
+              const isoDate = excelDateToISO(expDateExcel);
+              const isDup = newExpenses.some(e => e.date === isoDate && e.type === expType && e.value === expVal);
+
+              if (!isDup) {
+                const expMach = smNameFromDesc(expDesc);
+                const expDriver = driverNameFromDesc(expDesc);
+                if (expDriver) findOrCreateDriver(expDriver);
+
+                newExpenses.push({
+                  id: 'E_' + Date.now() + '_' + Math.floor(Math.random()*1000),
+                  date: isoDate,
+                  type: expType === 'hospedagem e alimentação' ? 'alimentação' : expType,
+                  value: expVal,
+                  machineName: expMach || undefined,
+                  responsibleName: expDriver || undefined,
+                  localityName: sheetName.trim()
+                });
+              }
+            }
+          }
+        }
+      });
+
+      DATA.vehicles = newVehicles;
+      DATA.localities = newLocalities;
+      DATA.expenses = newExpenses;
+      DATA.motoristas = newMotoristas;
+      DATA.areas = newAreas;
+      DATA.maquinas = newMaquinas;
+
+      saveData();
+      renderView();
+      showToast('Planilha Excel importada com sucesso!', 'success');
+      alert('Planilha Excel importada com sucesso!\n- Total de veículos: ' + DATA.vehicles.length + '\n- Localidades: ' + DATA.localities.length + '\n- Despesas: ' + DATA.expenses.length);
+    } catch(err) {
+      alert('Erro ao importar Excel: ' + err.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function driverNameFromDesc(desc) {
+  if (!desc) return null;
+  const d = desc.toLowerCase();
+  if (d.includes('rogerio')) return 'Rogério';
+  if (d.includes('marcos')) return 'Marcos';
+  if (d.includes('chico')) return 'Chico';
+  if (d.includes('rodrigo')) return 'Rodrigo';
+  if (d.includes('leonir')) return 'Leonir';
+  if (d.includes('cowboy')) return 'Cowboy';
+  if (d.includes('bigode')) return 'Bigode';
+  if (d.includes('eduardo')) return 'Eduardo';
+  return null;
+}
+
+function smNameFromDesc(desc) {
+  if (!desc) return null;
+  const d = desc.toLowerCase();
+  if (d.includes('fr 700') || d.includes('fr700')) return 'FR 700';
+  if (d.includes('fr 9050') || d.includes('fr9050')) return 'FR 9050';
+  if (d.includes('fr 9060') || d.includes('fr9060')) return 'FR 9060';
+  if (d.includes('jd7250') || d.includes('jd 7250')) return 'JD7250';
+  return null;
+}
+
+// ===== INITIALIZE =====
+renderView();
+</script>
+</body>
+</html>
