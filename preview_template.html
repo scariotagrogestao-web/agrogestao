@@ -313,6 +313,14 @@ function renderView() {
   if (!user) {
     if (nav) nav.style.display = 'none';
     container.innerHTML = renderLogin();
+    
+    // Pre-fill fields from remember me
+    const rememberVal = localStorage.getItem('agrog_remember') === 'true';
+    const savedUser = localStorage.getItem('agrog_saved_username') || '';
+    const uField = document.getElementById('login-username');
+    const rField = document.getElementById('login-remember');
+    if (uField) uField.value = savedUser;
+    if (rField) rField.checked = rememberVal;
     return;
   }
   
@@ -362,7 +370,7 @@ function renderLogin() {
         
         <div id="login-error" style="display:none; width:100%; padding:10px; border-radius:8px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2); color:#fb7185; font-size:11px; font-weight:600; text-align:center"></div>
         
-        <div style="width:100%; display:flex; flex-direction:column; gap:12px">
+        <div style="width:100%; display:flex; flex-direction:column; gap:12px text-align:left">
           <div class="form-group" style="margin-bottom:0">
             <label>Usuário</label>
             <input type="text" id="login-username" class="form-control" placeholder="Ex: Admin" onkeydown="if(event.key==='Enter')submitLogin()">
@@ -370,8 +378,16 @@ function renderLogin() {
           
           <div class="form-group" style="margin-bottom:0">
             <label>Senha</label>
-            <input type="password" id="login-password" class="form-control" placeholder="••••••••" onkeydown="if(event.key==='Enter')submitLogin()">
+            <div style="position:relative">
+              <input type="password" id="login-password" class="form-control" placeholder="••••••••" style="padding-right:70px" onkeydown="if(event.key==='Enter')submitLogin()">
+              <button type="button" onclick="toggleLoginPassword(event)" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--text-muted); font-size:9px; font-weight:bold; text-transform:uppercase; cursor:pointer; font-family:sans-serif">Mostrar</button>
+            </div>
           </div>
+        </div>
+        
+        <div style="width:100%; display:flex; align-items:center; gap:8px; select-none:none">
+          <input type="checkbox" id="login-remember" style="width:14px; height:14px; cursor:pointer">
+          <label for="login-remember" style="font-size:11px; color:var(--text-muted); cursor:pointer; font-family:sans-serif">Salvar Usuário</label>
         </div>
         
         <button class="btn btn-primary" onclick="submitLogin()" style="width:100%; justify-content:center; padding:12px; margin-top:10px; font-size:12px">Entrar no Sistema</button>
@@ -380,14 +396,42 @@ function renderLogin() {
   `;
 }
 
+function toggleLoginPassword(e) {
+  const p = document.getElementById('login-password');
+  const btn = e.target;
+  if (p) {
+    if (p.type === 'password') {
+      p.type = 'text';
+      btn.textContent = 'Ocultar';
+    } else {
+      p.type = 'password';
+      btn.textContent = 'Mostrar';
+    }
+  }
+}
+
 function submitLogin() {
   const u = document.getElementById('login-username').value.trim();
   const p = document.getElementById('login-password').value;
+  const remember = document.getElementById('login-remember').checked;
   const err = document.getElementById('login-error');
   
   const uLower = u.toLowerCase();
-  if ((uLower === 'admin' || uLower === 'anderson') && p === 'AgroGestao10726') {
+  const customUsers = JSON.parse(localStorage.getItem('agrog_custom_users')) || [{ username: 'anderson', password: 'AgroGestao10726' }];
+  
+  const isAdm = uLower === 'admin' && p === 'AgroGestao10726';
+  const matched = customUsers.find(item => item.username.toLowerCase() === uLower);
+  const isCustom = matched && matched.password === p;
+  
+  if (isAdm || isCustom) {
     localStorage.setItem('agrog_user', uLower);
+    if (remember) {
+      localStorage.setItem('agrog_saved_username', u);
+      localStorage.setItem('agrog_remember', 'true');
+    } else {
+      localStorage.removeItem('agrog_saved_username');
+      localStorage.removeItem('agrog_remember');
+    }
     err.style.display = 'none';
     renderView();
   } else {
@@ -400,6 +444,50 @@ function confirmLogout() {
   if (confirm('Deseja encerrar a sessão?')) {
     localStorage.removeItem('agrog_user');
     currentView = 'dashboard';
+    renderView();
+  }
+}
+
+function createCustomUser() {
+  const err = document.getElementById('user-creator-error');
+  const u = document.getElementById('new-user-username').value.trim().toLowerCase();
+  const p = document.getElementById('new-user-password').value.trim();
+  
+  if (!u || !p) {
+    err.textContent = 'Preencha todos os campos.';
+    err.style.display = 'block';
+    return;
+  }
+  
+  if (u === 'admin') {
+    err.textContent = 'O usuário "admin" já é reservado pelo sistema.';
+    err.style.display = 'block';
+    return;
+  }
+  
+  let customUsers = JSON.parse(localStorage.getItem('agrog_custom_users')) || [{ username: 'anderson', password: 'AgroGestao10726' }];
+  if (customUsers.some(item => item.username.toLowerCase() === u)) {
+    err.textContent = 'Este usuário já existe.';
+    err.style.display = 'block';
+    return;
+  }
+  
+  customUsers.push({ username: u, password: p });
+  localStorage.setItem('agrog_custom_users', JSON.stringify(customUsers));
+  err.style.display = 'none';
+  alert(`Usuário "${u}" criado com sucesso!`);
+  renderView();
+}
+
+function deleteCustomUser(usernameToDelete) {
+  if (usernameToDelete.toLowerCase() === 'anderson') {
+    alert('O usuário "anderson" é o operador principal e não pode ser excluído.');
+    return;
+  }
+  if (confirm(`Deseja mesmo remover o acesso de "${usernameToDelete}"?`)) {
+    let customUsers = JSON.parse(localStorage.getItem('agrog_custom_users')) || [{ username: 'anderson', password: 'AgroGestao10726' }];
+    customUsers = customUsers.filter(item => item.username.toLowerCase() !== usernameToDelete.toLowerCase());
+    localStorage.setItem('agrog_custom_users', JSON.stringify(customUsers));
     renderView();
   }
 }
