@@ -7,3 +7,60 @@
   --font-display: "Hanken Grotesk", sans-serif;
 }
 
+
+body {
+  background-color: #090d16;
+  color: #cbd5e1;
+}
+
+/* Global Dark Mode Overrides for Containers and Cards */
+.bg-white, .card, div[class*="bg-white"] {
+  background-color: #111827 !important;
+  border-color: #1f2937 !important;
+  color: #f3f4f6 !important;
+}
+
+.bg-slate-50, .bg-slate-100 {
+  background-color: #090d16 !important;
+  color: #cbd5e1 !important;
+}
+
+/* Form Inputs and Selects */
+input, select {
+  background-color: #030712 !important;
+  border-color: #374151 !important;
+  color: #f3f4f6 !important;
+}
+input::placeholder {
+  color: #4b5563 !important;
+}
+
+/* Tables and Headers */
+table {
+  background-color: #111827 !important;
+}
+th {
+  background-color: #0b0f19 !important;
+  color: #9ca3af !important;
+  border-color: #1f2937 !important;
+}
+td {
+  border-color: #1f2937 !important;
+}
+
+/* Alternating rows (Zebra striping) in dark mode */
+tbody tr:nth-child(even), tr[style*="background:#fdf9f0"], tr[style*="background:#fcfaf2"] {
+  background-color: #161e2e !important;
+}
+tbody tr:nth-child(odd) {
+  background-color: #111827 !important;
+}
+
+/* Text Overrides */
+.text-slate-800, .text-slate-700, .text-slate-600, .text-slate-900 {
+  color: #f3f4f6 !important;
+}
+.text-slate-500, .text-slate-400 {
+  color: #9ca3af !important;
+}
+

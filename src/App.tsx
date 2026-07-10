@@ -545,7 +545,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans antialiased text-slate-800">
+    <div className="min-h-screen bg-slate-950 flex flex-col font-sans antialiased text-slate-100">
       <Header 
         searchQuery={globalSearch} 
         onSearchChange={setGlobalSearch} 

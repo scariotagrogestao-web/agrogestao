@@ -257,21 +257,21 @@ export const initialProducoes: Producao[] = [];
 
 export const getEntityColor = (name: string) => {
   if (!name || name === '—' || name === '-') return {
-    bg: 'bg-slate-50',
-    text: 'text-slate-700',
-    border: 'border-slate-100',
-    style: 'background:#f8fafc; color:#334155; border:1px solid #e2e8f0;'
+    bg: 'bg-slate-500/5',
+    text: 'text-slate-400',
+    border: 'border-slate-500/10',
+    style: 'background:rgba(255,255,255,0.05); color:#94a3b8; border:1px solid rgba(255,255,255,0.1);'
   };
   
   const colors = [
-    { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-100', style: 'background:#ecfdf5; color:#047857; border:1px solid #d1fae5;' },
-    { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-100', style: 'background:#eff6ff; color:#1d4ed8; border:1px solid #dbeafe;' },
-    { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-100', style: 'background:#faf5ff; color:#7e22ce; border:1px solid #f3e8ff;' },
-    { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-100', style: 'background:#fffbeb; color:#b45309; border:1px solid #fef3c7;' },
-    { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-100', style: 'background:#fff1f2; color:#be123c; border:1px solid #ffe4e6;' },
-    { bg: 'bg-cyan-50', text: 'text-cyan-700', border: 'border-cyan-100', style: 'background:#ecfeff; color:#0e7490; border:1px solid #ccfbf1;' },
-    { bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-100', style: 'background:#e0e7ff; color:#4338ca; border:1px solid #e0e7ff;' },
-    { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-100', style: 'background:#fff7ed; color:#c2410c; border:1px solid #ffedd5;' }
+    { bg: 'bg-emerald-500/12', text: 'text-emerald-400', border: 'border-emerald-500/20', style: 'background:rgba(20,184,166,0.12); color:#2dd4bf; border:1px solid rgba(20,184,166,0.25);' },
+    { bg: 'bg-blue-500/12', text: 'text-blue-400', border: 'border-blue-500/20', style: 'background:rgba(59,130,246,0.12); color:#60a5fa; border:1px solid rgba(59,130,246,0.25);' },
+    { bg: 'bg-purple-500/12', text: 'text-purple-400', border: 'border-purple-500/20', style: 'background:rgba(168,85,247,0.12); color:#c084fc; border:1px solid rgba(168,85,247,0.25);' },
+    { bg: 'bg-amber-500/12', text: 'text-amber-400', border: 'border-amber-500/20', style: 'background:rgba(245,158,11,0.12); color:#fbbf24; border:1px solid rgba(245,158,11,0.25);' },
+    { bg: 'bg-rose-500/12', text: 'text-rose-400', border: 'border-rose-500/20', style: 'background:rgba(244,63,94,0.12); color:#fb7185; border:1px solid rgba(244,63,94,0.25);' },
+    { bg: 'bg-cyan-500/12', text: 'text-cyan-400', border: 'border-cyan-500/20', style: 'background:rgba(6,182,212,0.12); color:#22d3ee; border:1px solid rgba(6,182,212,0.25);' },
+    { bg: 'bg-indigo-500/12', text: 'text-indigo-400', border: 'border-indigo-500/20', style: 'background:rgba(99,102,241,0.12); color:#818cf8; border:1px solid rgba(99,102,241,0.25);' },
+    { bg: 'bg-orange-500/12', text: 'text-orange-400', border: 'border-orange-500/20', style: 'background:rgba(249,115,22,0.12); color:#ff9d3f; border:1px solid rgba(249,115,22,0.25);' }
   ];
   
   let hash = 0;

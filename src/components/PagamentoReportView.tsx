@@ -284,7 +284,11 @@ export default function PagamentoReportView({
                     <td className="py-3 px-4 text-center font-mono text-slate-500">
                       {p.date.split('-').reverse().join('/')}
                     </td>
-                    <td className="py-3 px-4 text-[#0c4a23] font-bold">{getAreaName(p.areaId)}</td>
+                    <td className="py-3 px-4">
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${getEntityColor(getAreaName(p.areaId)).bg} ${getEntityColor(getAreaName(p.areaId)).text} border ${getEntityColor(getAreaName(p.areaId)).border} shadow-3xs`}>
+                        {getAreaName(p.areaId)}
+                      </span>
+                    </td>
                     <td className="py-3 px-4">
                       <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${getEntityColor(getMaquinaName(p.maquinaId)).bg} ${getEntityColor(getMaquinaName(p.maquinaId)).text} border ${getEntityColor(getMaquinaName(p.maquinaId)).border} shadow-3xs`}>
                         {getMaquinaName(p.maquinaId)}

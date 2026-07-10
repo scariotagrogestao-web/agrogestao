@@ -264,7 +264,11 @@ export default function ProducaoEntryView({
                         {prod.date.split('-').reverse().join('/')}
                       </td>
                       <td className="py-3 px-4 font-semibold text-slate-500">{prod.semana}</td>
-                      <td className="py-3 px-4 text-[#0c4a23] font-bold">{getAreaName(prod.areaId)}</td>
+                      <td className="py-3 px-4">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${getEntityColor(getAreaName(prod.areaId)).bg} ${getEntityColor(getAreaName(prod.areaId)).text} border ${getEntityColor(getAreaName(prod.areaId)).border} shadow-3xs`}>
+                          {getAreaName(prod.areaId)}
+                        </span>
+                      </td>
                       <td className="py-3 px-4">
                         <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${getEntityColor(getMaquinaName(prod.maquinaId)).bg} ${getEntityColor(getMaquinaName(prod.maquinaId)).text} border ${getEntityColor(getMaquinaName(prod.maquinaId)).border} shadow-3xs`}>
                           {getMaquinaName(prod.maquinaId)}
