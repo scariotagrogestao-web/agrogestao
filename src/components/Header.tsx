@@ -34,7 +34,8 @@ export default function Header({
         <img 
           src={logoImg} 
           alt="AgroGestão Logo" 
-          className="h-10 w-auto object-contain brightness-100 dark:brightness-110" 
+          style={{ height: '58px' }}
+          className="w-auto object-contain brightness-110 contrast-105" 
         />
       </div>
 

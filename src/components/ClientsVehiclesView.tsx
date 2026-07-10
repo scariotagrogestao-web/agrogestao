@@ -191,11 +191,11 @@ export default function ClientsVehiclesView({
   };
 
   return (
-    <div className="flex-1 p-8 overflow-y-auto bg-slate-50 relative flex flex-col gap-6">
+    <div className="flex flex-col gap-6 fade-in relative">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row justify-between sm:items-end gap-4 shrink-0">
         <div>
-          <h1 className="font-display text-3xl font-bold text-[#002046] mb-2">Clientes e Veículos</h1>
+          <h1 className="font-display text-3xl font-bold text-slate-100 mb-2">Clientes e Veículos</h1>
           <p className="text-sm text-slate-500">
             Gerencie o cadastro de clientes, máquinas e responsáveis para vinculação nas planilhas de horas e despesas.
           </p>
@@ -203,14 +203,14 @@ export default function ClientsVehiclesView({
         <div className="flex gap-3">
           <button 
             onClick={onExport}
-            className="border border-slate-300 text-slate-700 hover:bg-slate-50 px-4 py-2 rounded-lg font-semibold text-xs tracking-wider uppercase flex items-center gap-2 transition-colors cursor-pointer"
+            className="border border-slate-700 text-slate-300 hover:bg-slate-900 px-4 py-2 rounded-lg font-semibold text-xs tracking-wider uppercase flex items-center gap-2 transition-colors cursor-pointer"
           >
-            <Download className="w-4 h-4 text-slate-500" />
+            <Download className="w-4 h-4 text-slate-400" />
             <span>Exportar</span>
           </button>
           <button 
             onClick={handleOpenAddModal}
-            className="bg-[#002046] text-white hover:bg-[#1b365d] px-4 py-2 rounded-lg font-semibold text-xs tracking-wider uppercase flex items-center gap-2 transition-colors shadow-sm cursor-pointer"
+            className="bg-emerald-700 text-white hover:bg-emerald-800 px-4 py-2 rounded-lg font-semibold text-xs tracking-wider uppercase flex items-center gap-2 transition-colors shadow-sm cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>Adicionar Novo</span>
@@ -294,19 +294,19 @@ export default function ClientsVehiclesView({
                     style={{ backgroundColor: bg }}
                   >
                   <td className="py-3 px-4 font-mono text-slate-400 text-xs font-semibold">{item.id}</td>
-                  <td className="py-3 px-4 font-bold text-[#002046]">{item.name}</td>
-                  <td className="py-3 px-4 text-slate-500">{item.type}</td>
-                  <td className="py-3 px-4 text-slate-700 font-medium">{item.details}</td>
-                  <td className="py-3 px-4 font-mono text-xs text-slate-500">{item.plateOrFleet}</td>
-                  <td className="py-3 px-4 text-slate-600 font-medium">{item.responsible}</td>
-                  <td className="py-3 px-4 font-mono text-sm font-bold text-slate-700">
+                  <td className="py-3 px-4 font-bold text-teal-400">{item.name}</td>
+                  <td className="py-3 px-4 text-slate-400">{item.type}</td>
+                  <td className="py-3 px-4 text-slate-300 font-medium">{item.details}</td>
+                  <td className="py-3 px-4 font-mono text-xs text-slate-400">{item.plateOrFleet}</td>
+                  <td className="py-3 px-4 text-slate-300 font-medium">{item.responsible}</td>
+                  <td className="py-3 px-4 font-mono text-sm font-bold text-slate-300">
                     {item.rate !== undefined && item.rate > 0 ? `R$ ${item.rate.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—'}
                   </td>
                   <td className="py-3 px-4">{getStatusBadge(item.status)}</td>
                   <td className="py-3 px-4 text-right flex items-center justify-end gap-1.5 h-12">
                     <button 
                       onClick={() => handleOpenEditModal(item)}
-                      className="text-[#002046] hover:text-[#1b365d] hover:bg-slate-100 p-1.5 rounded-lg transition-colors cursor-pointer"
+                      className="text-slate-300 hover:text-white hover:bg-slate-800 p-1.5 rounded-lg transition-colors cursor-pointer"
                       title="Editar registro"
                     >
                       <Edit2 className="w-4 h-4" />

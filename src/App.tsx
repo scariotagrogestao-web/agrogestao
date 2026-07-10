@@ -554,7 +554,7 @@ export default function App() {
         placeholder={currentView === 'expenses' ? "Filtrar por despesa ou motorista..." : "Buscar nos registros..."}
       />
 
-      <main className="flex-1 p-6 max-w-7xl mx-auto w-full flex flex-col gap-6 overflow-hidden">
+      <main className="flex-1 p-6 max-w-7xl mx-auto w-full flex flex-col gap-6 overflow-y-auto">
         {currentView === 'dashboard' && (
           <DashboardView 
             localitySheets={localitySheets}

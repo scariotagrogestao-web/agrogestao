@@ -37,7 +37,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .main{min-height:calc(100vh - 70px);display:flex;flex-direction:column}
 .content{flex:1;padding:24px 28px;overflow-y:auto;max-width:1280px;width:100%;margin:0 auto}
 .page-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px}
-.page-title h3{font-size:1.35rem;font-weight:900;color:var(--navy)}
+.page-title h3{font-size:1.35rem;font-weight:900;color:var(--text)}
 .page-title p{font-size:.8rem;color:var(--text-muted);margin-top:2px}
 .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius-sm);font-size:.8rem;font-weight:600;border:none;cursor:pointer;transition:all .2s;font-family:inherit;white-space:nowrap}
 .btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{background:var(--primary-dark);transform:translateY(-1px);box-shadow:var(--shadow-md)}
@@ -50,11 +50,11 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .kpi{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s;box-shadow:var(--shadow)}
 .kpi:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
 .kpi-label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:8px}
-.kpi-value{font-size:1.6rem;font-weight:900;color:var(--navy);line-height:1.1}
+.kpi-value{font-size:1.6rem;font-weight:900;color:var(--primary-light);line-height:1.1}
 .kpi-sub{font-size:.72rem;color:var(--text-light);margin-top:6px}
 .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);margin-bottom:20px}
 .card-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.card-header h4{font-size:.95rem;font-weight:800;color:var(--navy)}
+.card-header h4{font-size:.95rem;font-weight:800;color:var(--text)}
 .card-body{padding:20px}
 .grid-12{display:grid;grid-template-columns:repeat(12,1fr);gap:24px}
 .col-4{grid-column:span 4}.col-8{grid-column:span 8}
@@ -136,7 +136,7 @@ input[type=number] {
 
 <nav class="top-nav">
   <div class="top-nav-brand">
-    <img src="AgroGestao_logotipo.png" alt="AgroGestão Logo" style="height:36px; width:auto; object-fit:contain;">
+    <img src="AgroGestao_logotipo.png" alt="AgroGestão Logo" style="height:54px; width:auto; object-fit:contain; filter: brightness(1.1) contrast(1.05);">
   </div>
   
   <div class="top-nav-menu">
@@ -582,7 +582,7 @@ function renderRegistries() {
             return `
               <tr style="background:${bg}; border-bottom:1px solid #cbd5e1">
                 <td style="font-family:monospace;color:var(--text-light)">${v.id}</td>
-                <td style="font-weight:700;color:var(--navy)">${v.name}</td>
+                <td style="font-weight:700;color:var(--accent-light)">${v.name}</td>
                 <td><span class="badge ${v.type==='Máquina'?'badge-green':v.type==='Caminhão'?'badge-blue':'badge-amber'}">${v.type}</span></td>
                 <td>${v.details || '—'}</td>
                 <td style="font-family:monospace">${v.plateOrFleet || v.fleet || '—'}</td>
@@ -626,7 +626,7 @@ function renderRegistries() {
             return `
               <tr style="background:${bg}; border-bottom:1px solid #cbd5e1">
                 <td style="font-family:monospace;color:var(--text-light)">${a.id}</td>
-                <td style="font-weight:700;color:#0c4a23">${a.name}</td>
+                <td style="font-weight:700;color:var(--accent-light)">${a.name}</td>
                 <td><span class="badge badge-blue">${a.culture}</span></td>
                 <td style="text-align:right;font-family:monospace;font-weight:700">${a.sizeHectares.toLocaleString('pt-BR')} ha</td>
                 <td style="text-align:center">

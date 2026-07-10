@@ -326,7 +326,7 @@ export default function DashboardView({
   };
 
   return (
-    <div className="flex-1 overflow-auto bg-slate-50 fade-in">
+    <div className="flex flex-col gap-6 fade-in">
       
       {/* Section Header */}
       <div className="mb-6 flex flex-col sm:flex-row justify-between sm:items-end gap-4 shrink-0">
