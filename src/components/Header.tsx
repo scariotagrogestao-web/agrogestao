@@ -39,7 +39,7 @@ export default function Header({
       </div>
 
       {/* Center Horizontal Menu Navigation Tabs */}
-      <nav className="hidden lg:flex items-center gap-1.5 flex-1 justify-center">
+      <nav className="hidden lg:flex items-center gap-1 flex-1 justify-center">
         {menuItems.map(item => {
           const Icon = item.icon;
           const isActive = currentView === item.id;
@@ -47,7 +47,7 @@ export default function Header({
             <button
               key={item.id}
               onClick={() => onNavigate(item.id)}
-              className={`px-4 py-2 flex items-center gap-2 rounded-lg font-sans text-[10px] tracking-wider uppercase font-bold transition-all duration-200 cursor-pointer border-none bg-transparent ${
+              className={`px-2 py-1 flex items-center gap-1 rounded-lg font-sans text-[9px] tracking-wider uppercase font-bold transition-all duration-200 cursor-pointer border-none bg-transparent whitespace-nowrap ${
                 isActive
                   ? 'bg-emerald-700 text-white shadow-xs'
                   : 'text-slate-400 hover:text-slate-100 hover:bg-slate-900'
