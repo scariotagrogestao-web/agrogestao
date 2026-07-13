@@ -640,8 +640,9 @@ export default function App() {
 
   if (!currentUser) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6 text-slate-100 font-sans antialiased">
-        <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl flex flex-col items-center gap-6 animate-in fade-in zoom-in-95 duration-200">
+      <>
+        <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6 text-slate-100 font-sans antialiased">
+          <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl flex flex-col items-center gap-6 animate-in fade-in zoom-in-95 duration-200">
           <img 
             src={logoAgrogestao} 
             alt="AgroGestão Logo" 
@@ -780,6 +781,7 @@ export default function App() {
           </div>
         </div>
       )}
+      </>
     );
   }
 
