@@ -54,6 +54,12 @@ export default function App() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState('');
+  
+  // Forgot Password States
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [forgotUsername, setForgotUsername] = useState('');
+  const [forgotContact, setForgotContact] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
 
   const getLocal = (key: string, initial: any) => {
     const saved = localStorage.getItem(key);
@@ -144,6 +150,43 @@ export default function App() {
     setCurrentUser(null);
     localStorage.removeItem('agrog_user');
     setCurrentView('dashboard');
+  };
+
+  const handleSendForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!forgotUsername || !forgotContact) {
+      alert("Preencha seu usuário e contato.");
+      return;
+    }
+    setForgotLoading(true);
+    try {
+      const response = await fetch("https://formsubmit.co/ajax/jmarcos0484@gmail.com", {
+        method: "POST",
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          name: "Sistema AgroGestão",
+          message: `O usuário "${forgotUsername}" está solicitando a redefinição de senha.\nContato fornecido: ${forgotContact}`,
+          _subject: "AgroGestão: Solicitação de Alteração de Senha",
+          _captcha: "false"
+        })
+      });
+
+      if (response.ok) {
+        alert("Sua solicitação foi enviada com sucesso! O administrador entrará em contato com você em breve.");
+        setShowForgotModal(false);
+        setForgotUsername('');
+        setForgotContact('');
+      } else {
+        alert("Ocorreu um erro ao enviar. Por favor, avise o administrador diretamente.");
+      }
+    } catch (error) {
+      alert("Falha de conexão. Tente novamente mais tarde.");
+    } finally {
+      setForgotLoading(false);
+    }
   };
 
   const handleCreateUser = (e: React.FormEvent) => {
@@ -715,12 +758,7 @@ export default function App() {
 
             <button
               type="button"
-              onClick={() => {
-                const email = 'jmarcos0484@gmail.com';
-                navigator.clipboard.writeText(email);
-                window.location.href = `mailto:${email}?subject=Solicitacao%20de%20Alteracao%20de%20Senha%20-%20AgroGestao`;
-                alert(`O e-mail de destino (${email}) foi copiado para a sua área de transferência!\n\nCaso o aplicativo de e-mail não abra automaticamente, por favor envie a solicitação manualmente para ele.`);
-              }}
+              onClick={() => setShowForgotModal(true)}
               className="w-full text-center text-[10px] text-slate-400 hover:text-emerald-400 font-bold uppercase tracking-wider transition-colors mt-3 bg-transparent border-none cursor-pointer"
             >
               Solicitar Alteração de Senha
@@ -728,6 +766,58 @@ export default function App() {
           </form>
         </div>
       </div>
+
+      {/* Forgot Password Modal */}
+      {showForgotModal && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-2xl max-w-sm w-full">
+            <h3 className="text-emerald-400 font-bold text-lg mb-2">Esqueci minha senha</h3>
+            <p className="text-slate-400 text-xs mb-4">
+              Preencha os dados abaixo. O administrador receberá um e-mail com a sua solicitação.
+            </p>
+            <form onSubmit={handleSendForgotPassword} className="space-y-4">
+              <div>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Seu Nome de Usuário</label>
+                <input
+                  type="text"
+                  value={forgotUsername}
+                  onChange={(e) => setForgotUsername(e.target.value)}
+                  placeholder="ex: anderson"
+                  className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-lg text-sm text-slate-100 outline-none focus:border-emerald-600"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Seu WhatsApp / E-mail</label>
+                <input
+                  type="text"
+                  value={forgotContact}
+                  onChange={(e) => setForgotContact(e.target.value)}
+                  placeholder="Para receber a nova senha..."
+                  className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-lg text-sm text-slate-100 outline-none focus:border-emerald-600"
+                  required
+                />
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowForgotModal(false)}
+                  className="flex-1 bg-slate-800 text-slate-300 font-bold text-xs uppercase tracking-wider py-2.5 rounded-lg hover:bg-slate-700 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={forgotLoading}
+                  className="flex-1 bg-emerald-600 text-white font-bold text-xs uppercase tracking-wider py-2.5 rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50"
+                >
+                  {forgotLoading ? 'Enviando...' : 'Enviar Pedido'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     );
   }
 
