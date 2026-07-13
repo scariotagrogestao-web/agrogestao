@@ -10,7 +10,7 @@ interface SettingsViewProps {
   isAdmin: boolean;
 }
 
-export default function SettingsView({ customUsers, setCustomUsers, handleExportData, handleImportData }: SettingsViewProps) {
+export default function SettingsView({ customUsers, setCustomUsers, handleExportData, handleImportData, isAdmin }: SettingsViewProps) {
   const [newUsername, setNewUsername] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [userError, setUserError] = useState('');
