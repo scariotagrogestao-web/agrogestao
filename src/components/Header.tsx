@@ -35,21 +35,20 @@ export default function Header({
   const filteredMenuItems = isAdmin 
     ? menuItems 
     : menuItems.filter(item => item.id !== 'settings');
-
   return (
-    <header className="h-[72px] bg-slate-950 border-b border-slate-800 flex justify-between items-center px-8 w-full sticky top-0 z-40 shadow-sm shrink-0">
+    <header className="h-[72px] bg-gradient-to-b from-slate-900 to-slate-950 border-b border-black flex justify-between items-center px-8 w-full sticky top-0 z-40 shadow-[0_4px_15px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.05)] shrink-0">
       {/* Brand Logo / Identity */}
       <div className="flex items-center mr-6 shrink-0 select-none">
         <img 
           src={logoImg} 
           alt="AgroGestão Logo" 
           style={{ height: '52px' }}
-          className="w-auto object-contain brightness-110 contrast-105 rounded-full" 
+          className="w-auto object-contain brightness-110 contrast-105 rounded-full drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]" 
         />
       </div>
 
       {/* Center Horizontal Menu Navigation Tabs */}
-      <nav className="hidden lg:flex items-center gap-1 flex-1 justify-center">
+      <nav className="hidden lg:flex items-center gap-2 flex-1 justify-center">
         {filteredMenuItems.map(item => {
           const Icon = item.icon;
           const isActive = currentView === item.id;
@@ -57,13 +56,13 @@ export default function Header({
             <button
               key={item.id}
               onClick={() => onNavigate(item.id)}
-              className={`px-2 py-1 flex items-center gap-1 rounded-lg font-sans text-[9px] tracking-wider uppercase font-bold transition-all duration-200 cursor-pointer border-none bg-transparent whitespace-nowrap ${
+              className={`px-3 py-1.5 flex items-center gap-1.5 rounded-lg font-sans text-[10px] tracking-wider uppercase font-bold transition-all duration-200 cursor-pointer whitespace-nowrap border ${
                 isActive
-                  ? 'bg-emerald-700 text-white shadow-xs'
-                  : 'text-slate-400 hover:text-slate-100 hover:bg-slate-900'
+                  ? 'bg-gradient-to-b from-emerald-600 to-emerald-800 text-white border-emerald-900 shadow-[inset_0_1px_1px_rgba(255,255,255,0.4),0_2px_4px_rgba(0,0,0,0.4)]'
+                  : 'bg-transparent text-slate-400 border-transparent hover:text-slate-200 hover:bg-slate-800 hover:border-slate-700 hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),0_1px_2px_rgba(0,0,0,0.2)]'
               }`}
             >
-              <Icon className="w-4 h-4 shrink-0" />
+              <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)]' : ''}`} />
               <span>{item.label}</span>
             </button>
           );
