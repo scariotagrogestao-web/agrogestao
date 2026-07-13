@@ -248,7 +248,7 @@ export default function ExpensesView({
     doc.text("RELATÓRIO DE DESPESAS OPERACIONAIS", 14, 15);
     
     doc.setFontSize(10);
-    const filterText = `Filtros: ${typeFilter} | ${machineFilter} | ${driverFilter}`;
+    const filterText = `Filtros: ${filterType} | ${filterMachine} | ${filterDriver}`;
     doc.text(filterText, 14, 22);
     
     const tableData = filteredExpenses.map(exp => {
