@@ -708,6 +708,13 @@ export default function App() {
             >
               Confirmar Acesso
             </button>
+
+            <a 
+              href="mailto:jmarcos0484@gmail.com?subject=Solicitacao%20de%20Alteracao%20de%20Senha%20-%20AgroGestao"
+              className="text-center text-[10px] text-slate-400 hover:text-emerald-400 font-bold uppercase tracking-wider transition-colors mt-2"
+            >
+              Solicitar Alteração de Senha
+            </a>
           </form>
         </div>
       </div>
