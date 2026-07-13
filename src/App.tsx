@@ -651,25 +651,31 @@ export default function App() {
             )}
             
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Usuário</label>
+              <label htmlFor="username" className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Usuário</label>
               <input 
+                id="username"
+                name="username"
                 type="text" 
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Ex: Admin"
+                autoComplete="username"
                 className="w-full p-3 bg-slate-950 border border-slate-800 rounded-lg text-sm outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 text-slate-100"
                 required
               />
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Senha</label>
+              <label htmlFor="password" className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Senha</label>
               <div className="relative">
                 <input 
+                  id="password"
+                  name="password"
                   type={showPassword ? "text" : "password"} 
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
+                  autoComplete="current-password"
                   className="w-full p-3 pr-16 bg-slate-950 border border-slate-800 rounded-lg text-sm outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 text-slate-100"
                   required
                 />
