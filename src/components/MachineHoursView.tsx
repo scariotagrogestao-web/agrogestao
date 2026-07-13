@@ -673,6 +673,7 @@ export default function MachineHoursView({
                   Totais Período
                 </td>
                 {filteredMachines.map((machine, mIdx) => {
+                  const p = palettes[mIdx % palettes.length];
                   const totals = sheetStats.machineTotals.find(t => t.machineId === machine.id);
                   const totalHrs = totals?.totalHours || 0;
                   return (
