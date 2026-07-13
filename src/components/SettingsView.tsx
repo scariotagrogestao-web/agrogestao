@@ -67,6 +67,18 @@ export default function SettingsView({ customUsers, setCustomUsers, handleExport
     }
   };
 
+  const handleChangePassword = (usernameToChange: string) => {
+    const newPass = prompt(`Digite a nova senha para o usuário "${usernameToChange}":`);
+    if (newPass !== null) {
+      if (newPass.trim() === '') {
+        alert('A senha não pode ser vazia.');
+        return;
+      }
+      setCustomUsers(prev => prev.map(u => u.username.toLowerCase() === usernameToChange.toLowerCase() ? { ...u, password: newPass.trim() } : u));
+      alert(`Senha do usuário "${usernameToChange}" alterada com sucesso!`);
+    }
+  };
+
   return (
     <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-lg space-y-8 text-slate-100">
       {/* Backup & Export Section */}
@@ -102,11 +114,11 @@ export default function SettingsView({ customUsers, setCustomUsers, handleExport
 {isAdmin && (
         <section className="space-y-4">
           <h3 className="text-sm font-bold uppercase text-slate-500">👥 Gerenciamento de Usuários</h3>
-          <p className="text-xs text-slate-400">Somente o administrador pode criar ou remover usuários.</p>
+          <p className="text-xs text-slate-400">Somente o administrador pode criar ou remover usuários, bem como alterar senhas e permissões.</p>
           {/* List existing users */}
           <ul className="space-y-2">
             {customUsers.map(user => (
-              <li key={user.username} className="flex items-center justify-between bg-slate-800 rounded px-3 py-2">
+              <li key={user.username} className="flex flex-col md:flex-row md:items-center justify-between bg-slate-800 rounded px-3 py-2 gap-3">
                 <span className="flex items-center gap-2">
                   <User className="w-4 h-4 text-emerald-500" />
                   <span className="text-sm capitalize font-bold">{user.username}</span>
@@ -114,7 +126,13 @@ export default function SettingsView({ customUsers, setCustomUsers, handleExport
                     {user.role === 'admin' ? 'Admin' : 'Normal'}
                   </span>
                 </span>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 self-end md:self-auto">
+                  <button
+                    onClick={() => handleChangePassword(user.username)}
+                    className="text-xs text-slate-400 hover:text-emerald-400 underline decoration-slate-600 underline-offset-2 transition-colors"
+                  >
+                    Alterar Senha
+                  </button>
                   <button
                     onClick={() => handleToggleRole(user.username, user.role)}
                     className="text-xs text-slate-400 hover:text-emerald-400 underline decoration-slate-600 underline-offset-2 transition-colors"
@@ -123,7 +141,7 @@ export default function SettingsView({ customUsers, setCustomUsers, handleExport
                   </button>
                   <button
                     onClick={() => handleDeleteUser(user.username)}
-                    className="flex items-center gap-1 text-red-500 hover:text-red-400"
+                    className="flex items-center gap-1 text-red-500 hover:text-red-400 ml-2"
                     title="Remover usuário"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
