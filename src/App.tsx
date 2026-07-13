@@ -40,6 +40,8 @@ import {
   Trash2
 } from 'lucide-react';
 
+import { CustomUser } from './components/SettingsView';
+
 export default function App() {
   // Navigation
   const [currentView, setCurrentView] = useState<string>('dashboard');
@@ -52,20 +54,16 @@ export default function App() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState('');
+
   const getLocal = (key: string, initial: any) => {
     const saved = localStorage.getItem(key);
     return saved ? JSON.parse(saved) : initial;
   };
 
-  const [customUsers, setCustomUsers] = useFirebaseSync<{username: string, password: string}[]>(
+  const [customUsers, setCustomUsers] = useFirebaseSync<CustomUser>(
     'agrog_custom_users', 
-    getLocal('agrog_custom_users', [{ username: 'anderson', password: 'AgroGestao10726' }])
+    getLocal('agrog_custom_users', [{ username: 'anderson', password: 'AgroGestao10726', role: 'admin' }])
   );
-
-  // User Manager States
-  const [newUsername, setNewUsername] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [userError, setUserError] = useState('');
 
   // 1. Core Original App States
   const [clientsAndVehicles, setClientsAndVehicles] = useFirebaseSync<ClientOrVehicle[]>(
@@ -99,12 +97,18 @@ export default function App() {
     getLocal('agrog_producoes', initialProducoes)
   );
 
+  const isCurrentUserAdmin = useMemo(() => {
+    if (currentUser === 'admin') return true;
+    const found = customUsers.find(u => u.username === currentUser);
+    return found?.role === 'admin';
+  }, [currentUser, customUsers]);
+
   // Security guard for non-admin settings access
   useEffect(() => {
-    if (currentUser !== 'admin' && currentView === 'settings') {
+    if (!isCurrentUserAdmin && currentView === 'settings') {
       setCurrentView('dashboard');
     }
-  }, [currentUser, currentView]);
+  }, [isCurrentUserAdmin, currentView]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -729,7 +733,7 @@ export default function App() {
         currentView={currentView}
         onNavigate={setCurrentView}
         placeholder={currentView === 'expenses' ? "Filtrar por despesa ou motorista..." : "Buscar nos registros..."}
-        isAdmin={currentUser === 'admin'}
+        isAdmin={isCurrentUserAdmin}
         onLogout={handleLogout}
       />
 
@@ -821,7 +825,7 @@ export default function App() {
             setCustomUsers={setCustomUsers}
             handleExportData={handleExportData}
             handleImportData={handleImportData}
-            isAdmin={currentUser === 'admin'}
+            isAdmin={isCurrentUserAdmin}
           />
         )}
       </main>
