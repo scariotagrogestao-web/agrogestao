@@ -101,7 +101,7 @@ export default function App() {
 
   // Security guard for non-admin settings access
   useEffect(() => {
-    if (currentUser === 'anderson' && currentView === 'settings') {
+    if (currentUser !== 'admin' && currentView === 'settings') {
       setCurrentView('dashboard');
     }
   }, [currentUser, currentView]);

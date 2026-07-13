@@ -8,10 +8,13 @@ import {
   DollarSign, 
   ChevronDown, 
   TrendingUp, 
-  AlertCircle 
+  AlertCircle,
+  FileText
 } from 'lucide-react';
 import { Expense, ClientOrVehicle } from '../types';
 import { getEntityColor } from '../utils/agroHelpers';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 interface ExpensesViewProps {
   expenses: Expense[];
@@ -240,6 +243,33 @@ export default function ExpensesView({
     }
   };
 
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+    doc.text("RELATÓRIO DE DESPESAS OPERACIONAIS", 14, 15);
+    
+    doc.setFontSize(10);
+    const filterText = `Filtros: ${typeFilter} | ${machineFilter} | ${driverFilter}`;
+    doc.text(filterText, 14, 22);
+    
+    const tableData = filteredExpenses.map(exp => {
+      return [
+        formatDateToDisplay(exp.date),
+        exp.type.toUpperCase(),
+        exp.machineName || '-',
+        exp.responsibleName || '-',
+        exp.value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+      ];
+    });
+
+    autoTable(doc, {
+      startY: 28,
+      head: [['Data', 'Tipo', 'Máquina/Veículo', 'Responsável', 'Valor']],
+      body: tableData,
+    });
+    
+    doc.save(`relatorio_despesas_${Date.now()}.pdf`);
+  };
+
   return (
     <div className="flex flex-col gap-6 fade-in">
       {/* Context Header */}
@@ -248,13 +278,21 @@ export default function ExpensesView({
           <h1 className="font-display text-3xl font-bold text-[#002046] mb-2">Controle de Gastos</h1>
           <p className="text-sm text-slate-500">Gerencie e analise as despesas operacionais.</p>
         </div>
-        <div className="flex gap-4">
+        <div className="flex gap-2">
+          <button 
+            onClick={handleExportPDF}
+            className="flex items-center gap-2 px-4 py-2 border border-red-200 bg-red-50 text-red-700 font-semibold text-xs tracking-wider uppercase rounded-lg hover:bg-red-100 transition-colors shadow-xs cursor-pointer"
+            title="Gerar PDF"
+          >
+            <FileText className="w-4 h-4 text-red-500" />
+            <span>Gerar PDF</span>
+          </button>
           <button 
             onClick={onExport}
             className="flex items-center gap-2 px-4 py-2 border border-slate-300 bg-white text-[#002046] font-semibold text-xs tracking-wider uppercase rounded-lg hover:bg-slate-50 transition-colors shadow-xs cursor-pointer"
           >
             <Download className="w-4 h-4 text-slate-500" />
-            <span>Exportar Relatório</span>
+            <span>Exportar CSV</span>
           </button>
         </div>
       </div>
@@ -526,7 +564,7 @@ export default function ExpensesView({
 
         {/* Detailed List table */}
         <div className="overflow-x-auto flex-1">
-          <table className="w-full text-left border-collapse min-w-[500px]">
+          <table className="hidden md:table w-full text-left border-collapse min-w-[500px]">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200 font-sans text-xs font-bold uppercase tracking-wider text-slate-400">
                 <th 
@@ -617,6 +655,73 @@ export default function ExpensesView({
               </tr>
             </tfoot>
           </table>
+
+          {/* Mobile Cards View */}
+          <div className="md:hidden flex flex-col divide-y divide-slate-100">
+            {filteredExpenses.map((exp) => {
+              const getBadgeClass = (typeStr: string) => {
+                const t = (typeStr || '').toLowerCase().trim();
+                if (t === 'diesel') return 'bg-emerald-50 text-emerald-700 border border-emerald-100';
+                if (t === 'gasolina') return 'bg-indigo-50 text-indigo-700 border border-indigo-100';
+                if (t === 'alimentação') return 'bg-amber-50 text-amber-700 border border-amber-100';
+                if (t === 'manutenção') return 'bg-rose-50 text-rose-700 border border-rose-100';
+                if (t === 'hospedagem') return 'bg-sky-50 text-sky-700 border border-sky-100';
+                if (t === 'pedágio') return 'bg-pink-50 text-pink-700 border border-pink-100';
+                if (t === 'abastecimento') return 'bg-orange-50 text-orange-700 border border-orange-100';
+                return 'bg-slate-50 text-slate-700 border border-slate-100';
+              };
+              return (
+                <div key={exp.id} className="p-4 flex flex-col gap-3 bg-white hover:bg-slate-50 transition-colors">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <span className="font-mono font-bold text-slate-600 text-xs">{formatDateToDisplay(exp.date)}</span>
+                      <div className="mt-1">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${getBadgeClass(exp.type)} shadow-3xs`}>
+                          {exp.type}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end gap-2">
+                      <span className="font-mono text-sm text-[#002046] font-black">
+                        {exp.value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                      </span>
+                      <button 
+                        onClick={() => {
+                          if (window.confirm('Excluir esta despesa permanentemente?')) {
+                            onDeleteExpense(exp.id);
+                          }
+                        }} 
+                        className="p-1.5 text-slate-400 hover:text-red-600 bg-slate-100 hover:bg-red-50 rounded-lg cursor-pointer"
+                      >
+                        <Trash2 className="w-3.5 h-3.5"/>
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {exp.machineName && (
+                      <span className={`inline-flex items-center px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${getEntityColor(exp.machineName).bg} ${getEntityColor(exp.machineName).text} border ${getEntityColor(exp.machineName).border} shadow-3xs`}>{exp.machineName}</span>
+                    )}
+                    {exp.responsibleName && (
+                      <span className={`inline-flex items-center px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${getEntityColor(exp.responsibleName).bg} ${getEntityColor(exp.responsibleName).text} border ${getEntityColor(exp.responsibleName).border} shadow-3xs`}>{exp.responsibleName}</span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+            {filteredExpenses.length === 0 && (
+              <div className="p-8 text-center text-slate-400 text-sm">Nenhuma despesa encontrada.</div>
+            )}
+            
+            {/* Mobile Footer Total */}
+            {filteredExpenses.length > 0 && (
+              <div className="bg-slate-50 border-t border-[#002046] p-4 flex justify-between items-center sticky bottom-0">
+                <span className="font-display font-bold text-[#002046] text-xs">TOTAL</span>
+                <span className="font-mono font-black text-base text-[#002046]">
+                  {filteredTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

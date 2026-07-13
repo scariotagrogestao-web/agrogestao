@@ -1,7 +1,9 @@
 import React, { useState, useMemo } from 'react';
-import { Filter, Calendar, Tractor, User, Landmark, DollarSign, Scale, Crop, TrendingUp, Download } from 'lucide-react';
+import { Filter, Calendar, Tractor, User, Landmark, DollarSign, Scale, Crop, TrendingUp, Download, FileText } from 'lucide-react';
 import { Producao, Area, Maquina, Motorista } from '../types/agro';
 import { getEntityColor } from '../utils/agroHelpers';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 interface PagamentoReportViewProps {
   producoes: Producao[];
   areas: Area[];
@@ -100,6 +102,38 @@ export default function PagamentoReportView({
     document.body.removeChild(link);
   };
 
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+    doc.text("RELATÓRIO DE PAGAMENTO E PRODUÇÃO", 14, 15);
+    
+    // Add subtitle with filters
+    doc.setFontSize(10);
+    const filterText = `Filtros: Semana ${selectedSemana} | ${selectedArea === 'all' ? 'Todas as Áreas' : getAreaName(selectedArea)} | ${selectedMotorista === 'all' ? 'Todos os Motoristas' : getMotoristaName(selectedMotorista)}`;
+    doc.text(filterText, 14, 22);
+    
+    const tableData = filteredProducoes.map(p => {
+      const rate = getMotoristaRate(p.motoristaId);
+      const payment = p.hectares * rate;
+      return [
+        p.date.split('-').reverse().join('/'),
+        getAreaName(p.areaId),
+        getMotoristaName(p.motoristaId),
+        p.hectares.toLocaleString('pt-BR'),
+        p.toneladas.toLocaleString('pt-BR'),
+        rate.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+        payment.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+      ];
+    });
+
+    autoTable(doc, {
+      startY: 28,
+      head: [['Data', 'Área / Fazenda', 'Motorista', 'Hectares', 'Toneladas', 'Tarifa', 'Pagamento']],
+      body: tableData,
+    });
+    
+    doc.save(`relatorio_pagamento_${Date.now()}.pdf`);
+  };
+
   return (
     <div className="flex flex-col gap-6 fade-in">
       {/* Page Title with Export Button */}
@@ -108,14 +142,24 @@ export default function PagamentoReportView({
           <h2 className="text-xl font-bold text-slate-800">Relatório de Pagamento e Produção</h2>
           <p className="text-xs text-slate-500 mt-1">Consolidação e fechamento de pagamentos para motoristas/operadores com base em hectares trabalhados.</p>
         </div>
-        <button
-          onClick={handleExportCSV}
-          className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs uppercase tracking-wider px-4 py-2.5 rounded-lg shadow-sm transition-all flex items-center gap-1.5 cursor-pointer border-none"
-          title="Exportar os dados da tabela filtrada atual para Excel/CSV"
-        >
-          <Download className="w-4 h-4" />
-          <span>Exportar Relatório</span>
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={handleExportPDF}
+            className="bg-red-600 hover:bg-red-700 text-white font-bold text-xs uppercase tracking-wider px-4 py-2.5 rounded-lg shadow-sm transition-all flex items-center gap-1.5 cursor-pointer border-none"
+            title="Exportar Relatório para PDF"
+          >
+            <FileText className="w-4 h-4" />
+            <span>Gerar PDF</span>
+          </button>
+          <button
+            onClick={handleExportCSV}
+            className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs uppercase tracking-wider px-4 py-2.5 rounded-lg shadow-sm transition-all flex items-center gap-1.5 cursor-pointer border-none"
+            title="Exportar os dados da tabela filtrada atual para Excel/CSV"
+          >
+            <Download className="w-4 h-4" />
+            <span>Exportar CSV</span>
+          </button>
+        </div>
       </div>
 
       {/* Dynamic Filters Panel */}

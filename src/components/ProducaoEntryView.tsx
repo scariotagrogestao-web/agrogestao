@@ -240,7 +240,8 @@ export default function ProducaoEntryView({
           </div>
 
           <div className="overflow-x-auto flex-1">
-            <table className="w-full text-left border-collapse min-w-[700px]">
+            {/* Desktop Table */}
+            <table className="hidden md:table w-full text-left border-collapse min-w-[700px]">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200 font-sans text-xs font-bold uppercase tracking-wider text-slate-400">
                   <th className="py-3 px-4 w-28">Data</th>
@@ -326,6 +327,59 @@ export default function ProducaoEntryView({
                 )}
               </tbody>
             </table>
+
+            {/* Mobile Cards View */}
+            <div className="md:hidden flex flex-col divide-y divide-slate-100">
+              {[...producoes].reverse().map((prod) => {
+                const yieldRate = prod.hectares > 0 ? prod.toneladas / prod.hectares : 0;
+                return (
+                  <div key={prod.id} className="p-4 flex flex-col gap-3 bg-white hover:bg-slate-50 transition-colors">
+                    <div className="flex justify-between items-center">
+                       <span className="font-mono font-bold text-slate-600 text-xs">{prod.date.split('-').reverse().join('/')} • {prod.semana}</span>
+                       <div className="flex gap-2">
+                          <button 
+                            onClick={() => {
+                              setEditingId(prod.id);
+                              setDate(prod.date);
+                              setSelectedArea(prod.areaId);
+                              setSelectedMaquina(prod.maquinaId);
+                              setSelectedMotorista(prod.motoristaId);
+                              setHectares(String(prod.hectares));
+                              setToneladas(String(prod.toneladas));
+                            }} 
+                            className="p-2 text-slate-400 hover:text-emerald-600 bg-slate-100 hover:bg-emerald-50 rounded-lg cursor-pointer"
+                          >
+                            <Pencil className="w-4 h-4"/>
+                          </button>
+                          <button 
+                            onClick={() => {
+                              if (window.confirm('Excluir este lançamento permanentemente?')) {
+                                onDeleteProducao(prod.id);
+                              }
+                            }} 
+                            className="p-2 text-slate-400 hover:text-red-600 bg-slate-100 hover:bg-red-50 rounded-lg cursor-pointer"
+                          >
+                            <Trash2 className="w-4 h-4"/>
+                          </button>
+                       </div>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                       <span className={`inline-flex items-center px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${getEntityColor(getAreaName(prod.areaId)).bg} ${getEntityColor(getAreaName(prod.areaId)).text} border ${getEntityColor(getAreaName(prod.areaId)).border} shadow-3xs`}>{getAreaName(prod.areaId)}</span>
+                       <span className={`inline-flex items-center px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${getEntityColor(getMaquinaName(prod.maquinaId)).bg} ${getEntityColor(getMaquinaName(prod.maquinaId)).text} border ${getEntityColor(getMaquinaName(prod.maquinaId)).border} shadow-3xs`}>{getMaquinaName(prod.maquinaId)}</span>
+                       <span className={`inline-flex items-center px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${getEntityColor(getMotoristaName(prod.motoristaId)).bg} ${getEntityColor(getMotoristaName(prod.motoristaId)).text} border ${getEntityColor(getMotoristaName(prod.motoristaId)).border} shadow-3xs`}>{getMotoristaName(prod.motoristaId)}</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 bg-slate-50 p-3 rounded-lg border border-slate-100 mt-1">
+                      <div className="flex flex-col"><span className="text-[9px] text-slate-400 uppercase font-bold tracking-widest">Hectares</span><span className="font-mono font-bold text-slate-700 text-sm">{prod.hectares.toLocaleString('pt-BR')} ha</span></div>
+                      <div className="flex flex-col"><span className="text-[9px] text-slate-400 uppercase font-bold tracking-widest">Toneladas</span><span className="font-mono font-bold text-slate-700 text-sm">{prod.toneladas.toLocaleString('pt-BR')} t</span></div>
+                      <div className="flex flex-col"><span className="text-[9px] text-emerald-600 uppercase font-bold tracking-widest">Rend.</span><span className="font-mono font-bold text-emerald-800 text-sm">{yieldRate.toLocaleString('pt-BR', {maximumFractionDigits:2})} t/ha</span></div>
+                    </div>
+                  </div>
+                );
+              })}
+              {producoes.length === 0 && (
+                <div className="p-8 text-center text-slate-400 text-sm">Nenhum lançamento gravado.</div>
+              )}
+            </div>
           </div>
         </div>
       </div>

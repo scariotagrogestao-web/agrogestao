@@ -442,11 +442,19 @@ export default function MachineHoursView({
               ></div>
             </div>
           </div>
+          </div>
         </div>
       </div>
 
+      {/* Mobile Form for Operators */}
+      <MobileHoursForm 
+        activeSheet={activeSheet} 
+        activeSheetId={activeSheetId} 
+        onUpdateReadings={onUpdateReadings} 
+      />
+
       {/* Main Spreadsheet Grid */}
-      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden flex-1 flex flex-col shadow-sm min-h-[400px]">
+      <div className="hidden md:flex bg-white border border-slate-200 rounded-xl overflow-hidden flex-1 flex-col shadow-sm min-h-[400px]">
         {/* Table Toolbar */}
         <div className="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50 shrink-0">
           <h2 className="text-sm font-bold text-[#002046] flex items-center gap-2">
@@ -843,6 +851,87 @@ export default function MachineHoursView({
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function MobileHoursForm({ activeSheet, activeSheetId, onUpdateReadings }: any) {
+  const [mobileMachine, setMobileMachine] = useState('');
+  const [mobileDate, setMobileDate] = useState('');
+  const [mobileInitial, setMobileInitial] = useState('');
+  const [mobileFinal, setMobileFinal] = useState('');
+
+  const handleMobileSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (mobileMachine && mobileDate) {
+      onUpdateReadings(activeSheetId, mobileMachine, mobileDate, { initial: mobileInitial, final: mobileFinal });
+      alert('Horas gravadas com sucesso!');
+      setMobileInitial('');
+      setMobileFinal('');
+    }
+  };
+
+  return (
+    <div className="md:hidden bg-white border border-slate-200 rounded-xl p-5 mb-6 shadow-xs">
+      <h3 className="font-display font-bold text-sm text-[#002046] border-b border-slate-100 pb-3 mb-4 flex items-center gap-2">
+        <Tractor className="w-4 h-4 text-[#002046]" />
+        Lançamento Rápido (Celular)
+      </h3>
+      <form onSubmit={handleMobileSubmit} className="space-y-4">
+        <div>
+          <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Data</label>
+          <select 
+            value={mobileDate} 
+            onChange={(e) => setMobileDate(e.target.value)}
+            className="w-full border border-slate-200 rounded-lg p-3 text-sm bg-slate-50 text-slate-800 outline-none focus:ring-1 focus:ring-[#002046]"
+            required
+          >
+            <option value="">Selecione o Dia...</option>
+            {activeSheet.dates.map((d: string) => (
+              <option key={d} value={d}>{d}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Máquina</label>
+          <select 
+            value={mobileMachine} 
+            onChange={(e) => setMobileMachine(e.target.value)}
+            className="w-full border border-slate-200 rounded-lg p-3 text-sm bg-slate-50 text-slate-800 outline-none focus:ring-1 focus:ring-[#002046]"
+            required
+          >
+            <option value="">Selecione a Máquina...</option>
+            {activeSheet.machines.map((m: any) => (
+              <option key={m.id} value={m.id}>{m.name}</option>
+            ))}
+          </select>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Hora Inicial</label>
+            <input 
+              type="number" step="0.01" 
+              value={mobileInitial} 
+              onChange={(e) => setMobileInitial(e.target.value)} 
+              placeholder="Ex: 100.5" 
+              className="w-full border border-slate-200 rounded-lg p-3 text-sm font-mono bg-slate-50" 
+            />
+          </div>
+          <div>
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Hora Final</label>
+            <input 
+              type="number" step="0.01" 
+              value={mobileFinal} 
+              onChange={(e) => setMobileFinal(e.target.value)} 
+              placeholder="Ex: 110.5" 
+              className="w-full border border-slate-200 rounded-lg p-3 text-sm font-mono bg-slate-50" 
+            />
+          </div>
+        </div>
+        <button type="submit" className="w-full bg-[#002046] text-white font-bold py-3 rounded-lg text-sm uppercase tracking-wider mt-2">
+          Salvar Horas
+        </button>
+      </form>
     </div>
   );
 }
