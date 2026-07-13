@@ -713,12 +713,18 @@ export default function App() {
               Confirmar Acesso
             </button>
 
-            <a 
-              href="mailto:jmarcos0484@gmail.com?subject=Solicitacao%20de%20Alteracao%20de%20Senha%20-%20AgroGestao"
-              className="text-center text-[10px] text-slate-400 hover:text-emerald-400 font-bold uppercase tracking-wider transition-colors mt-2"
+            <button
+              type="button"
+              onClick={() => {
+                const email = 'jmarcos0484@gmail.com';
+                navigator.clipboard.writeText(email);
+                window.location.href = `mailto:${email}?subject=Solicitacao%20de%20Alteracao%20de%20Senha%20-%20AgroGestao`;
+                alert(`O e-mail de destino (${email}) foi copiado para a sua área de transferência!\n\nCaso o aplicativo de e-mail não abra automaticamente, por favor envie a solicitação manualmente para ele.`);
+              }}
+              className="w-full text-center text-[10px] text-slate-400 hover:text-emerald-400 font-bold uppercase tracking-wider transition-colors mt-3 bg-transparent border-none cursor-pointer"
             >
               Solicitar Alteração de Senha
-            </a>
+            </button>
           </form>
         </div>
       </div>
