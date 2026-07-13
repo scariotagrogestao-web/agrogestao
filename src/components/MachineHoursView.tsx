@@ -494,7 +494,9 @@ export default function MachineHoursView({
                       style={{ 
                         backgroundColor: p.header, 
                         borderColor: p.border,
-                        color: p.dark
+                        color: p.dark,
+                        boxShadow: 'inset 0 3px 5px rgba(255,255,255,0.7), inset 0 -3px 5px rgba(0,0,0,0.15)',
+                        textShadow: '0 1px 1px rgba(255,255,255,0.8)'
                       }}
                     >
                       <div className="flex flex-col items-center">
@@ -539,7 +541,8 @@ export default function MachineHoursView({
                           minWidth: 45,
                           backgroundColor: p.bg,
                           color: p.text,
-                          borderColor: p.border
+                          borderColor: p.border,
+                          boxShadow: 'inset 0 2px 3px rgba(255,255,255,0.6), inset 0 -2px 3px rgba(0,0,0,0.08)'
                         }}
                       >
                         Hora Inicial
@@ -555,7 +558,8 @@ export default function MachineHoursView({
                           minWidth: 45,
                           backgroundColor: p.bg,
                           color: p.text,
-                          borderColor: p.border
+                          borderColor: p.border,
+                          boxShadow: 'inset 0 2px 3px rgba(255,255,255,0.6), inset 0 -2px 3px rgba(0,0,0,0.08)'
                         }}
                       >
                         Hora Final
@@ -571,7 +575,8 @@ export default function MachineHoursView({
                           minWidth: 45,
                           backgroundColor: p.header,
                           color: p.dark,
-                          borderColor: p.border
+                          borderColor: p.border,
+                          boxShadow: 'inset 0 2px 3px rgba(255,255,255,0.7), inset 0 -2px 3px rgba(0,0,0,0.1)'
                         }}
                       >
                         Total Dia
