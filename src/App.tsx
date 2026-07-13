@@ -148,10 +148,13 @@ export default function App() {
       setCurrentUser(uLower);
       localStorage.setItem('agrog_user', uLower);
       
-      // Persist username if "Remember me" is checked
-      localStorage.setItem('agrog_saved_username', username);
-      localStorage.setItem('agrog_remember', 'true');
-      setRememberUser(true);
+      if (rememberUser) {
+        localStorage.setItem('agrog_saved_username', username);
+        localStorage.setItem('agrog_remember', 'true');
+      } else {
+        localStorage.removeItem('agrog_saved_username');
+        localStorage.setItem('agrog_remember', 'false');
+      }
       
       setLoginError('');
       setPassword('');
@@ -707,7 +710,18 @@ export default function App() {
               </div>
             </div>
 
-            <!-- Remember me is always enabled and persisted automatically -->
+            <div className="flex items-center gap-2 mt-1">
+              <input
+                type="checkbox"
+                id="rememberUser"
+                checked={rememberUser}
+                onChange={(e) => setRememberUser(e.target.checked)}
+                className="w-3.5 h-3.5 rounded border-slate-700 bg-slate-900 text-emerald-600 focus:ring-emerald-600 focus:ring-offset-slate-950 cursor-pointer accent-emerald-600"
+              />
+              <label htmlFor="rememberUser" className="text-xs text-slate-400 cursor-pointer select-none">
+                Lembrar meu usuário (salvar acesso)
+              </label>
+            </div>
 
             <button 
               type="submit"
@@ -816,119 +830,13 @@ export default function App() {
         )}
  
         {currentView === 'settings' && (
-                  </label>
-                </div>
-              </div>
- 
-              <div className="border border-slate-200 rounded-xl p-5 space-y-4 col-span-1 md:col-span-2">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">📊 Importação de Planilha Excel (.xlsx)</h3>
-                <p className="text-xs text-slate-600">Importe diretamente arquivos Excel de controle de máquinas, horímetros e gastos operacionais.</p>
-                <div className="flex items-center gap-3">
-                  <label className="flex items-center gap-2 px-4 py-2 border border-emerald-200 bg-emerald-50/30 hover:bg-emerald-50 rounded-lg text-xs font-bold text-emerald-800 transition-colors cursor-pointer">
-                    <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
-                    <span>Selecionar Planilha Excel</span>
-                    <input 
-                      type="file" 
-                      accept=".xlsx,.xls" 
-                      onChange={handleImportExcel}
-                      className="hidden" 
-                    />
-                  </label>
-                </div>
-              </div>
-            </div>
-
-            {/* Dynamic User Management Panel - Only visible for Admin */}
-            <div className="border border-slate-200 rounded-xl p-5 space-y-4 pt-6 border-t border-slate-100">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">👥 Criar e Gerenciar Contas de Operadores</h3>
-              <p className="text-xs text-slate-600">Cadastre novas contas de acesso para operadores da fazenda. Todos os usuários criados aqui terão acesso restrito (sem permissão para acessar esta aba de Configurações).</p>
-              
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-2 items-start">
-                {/* Create Form */}
-                <form onSubmit={handleCreateUser} className="lg:col-span-5 space-y-4 bg-slate-900/50 p-4 border border-slate-800 rounded-xl">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-400">＋ Novo Operador</h4>
-                  {userError && (
-                    <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-2.5 rounded-lg text-xs font-medium text-center">
-                      {userError}
-                    </div>
-                  )}
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[9px] uppercase font-bold text-slate-400">Nome de Usuário</label>
-                    <input 
-                      type="text" 
-                      value={newUsername}
-                      onChange={(e) => setNewUsername(e.target.value)}
-                      placeholder="Ex: joao.silva"
-                      className="p-2.5 bg-slate-950 border border-slate-800 rounded-lg text-xs outline-none focus:border-emerald-600 text-slate-100 placeholder:text-slate-600"
-                      required
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[9px] uppercase font-bold text-slate-400">Senha de Acesso</label>
-                    <input 
-                      type="text" 
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      placeholder="Senha (mín. 4 caracteres)"
-                      className="p-2.5 bg-slate-950 border border-slate-800 rounded-lg text-xs outline-none focus:border-emerald-600 text-slate-100 placeholder:text-slate-600"
-                      required
-                    />
-                  </div>
-                  <button 
-                    type="submit"
-                    className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs tracking-wider uppercase py-2.5 rounded-lg transition-colors cursor-pointer"
-                  >
-                    Criar Acesso
-                  </button>
-                </form>
-
-                {/* Users Table */}
-                <div className="lg:col-span-7 border border-slate-800 bg-slate-900/30 rounded-xl overflow-hidden">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="bg-slate-950 border-b border-slate-800 text-[10px] uppercase tracking-wider text-slate-400 font-bold">
-                        <th className="py-2.5 px-3">Usuário</th>
-                        <th className="py-2.5 px-3">Senha de Acesso</th>
-                        <th className="py-2.5 px-3 w-16 text-center">Ações</th>
-                      </tr>
-                    </thead>
-                    <tbody className="text-xs text-slate-300">
-                      {customUsers.map(u => (
-                        <tr key={u.username} className="border-b border-slate-800/40 hover:bg-slate-900/20">
-                          <td className="py-2 px-3 font-semibold text-emerald-400">{u.username}</td>
-                          <td className="py-2 px-3 font-mono">{u.password}</td>
-                          <td className="py-2 px-3 text-center">
-                            <button 
-                              type="button"
-                              onClick={() => handleDeleteUser(u.username)}
-                              className={`text-slate-400 hover:text-red-500 p-1 rounded transition-colors cursor-pointer border-none bg-transparent ${u.username === 'anderson' ? 'opacity-30 cursor-not-allowed' : ''}`}
-                              title={u.username === 'anderson' ? 'Não é possível excluir o usuário padrão' : 'Excluir usuário'}
-                              disabled={u.username === 'anderson'}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
- 
-            <div className="pt-6 border-t border-slate-100">
-              <div className="bg-red-50/50 border border-red-100 rounded-xl p-5 space-y-4">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-red-700">⚠️ Zona de Perigo</h3>
-                <p className="text-xs text-red-800">Esta ação irá apagar completamente todas as alterações manuais e recarregar os dados brutos originais do sistema.</p>
-                <button 
-                  onClick={handleResetDatabase}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-red-600 text-white rounded-lg text-xs font-bold hover:bg-red-700 transition-colors cursor-pointer"
-                >
-                  <RotateCcw className="w-4 h-4" />
-                  <span>Redefinir Banco de Dados</span>
-                </button>
-              </div>
-            </div>
-          </div>
+          <SettingsView
+            customUsers={customUsers}
+            setCustomUsers={setCustomUsers}
+            handleExportData={handleExportData}
+            handleImportData={handleImportData}
+            isAdmin={currentUser === 'admin'}
+          />
         )}
       </main>
  
