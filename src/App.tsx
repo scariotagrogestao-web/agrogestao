@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useFirebaseSync } from './useFirebaseSync';
 import Header from './components/Header';
 import DashboardView from './components/DashboardView';
 import RegistriesView from './components/RegistriesView';
@@ -51,10 +52,15 @@ export default function App() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState('');
-  const [customUsers, setCustomUsers] = useState<{username: string, password: string}[]>(() => {
-    const saved = localStorage.getItem('agrog_custom_users');
-    return saved ? JSON.parse(saved) : [{ username: 'anderson', password: 'AgroGestao10726' }];
-  });
+  const getLocal = (key: string, initial: any) => {
+    const saved = localStorage.getItem(key);
+    return saved ? JSON.parse(saved) : initial;
+  };
+
+  const [customUsers, setCustomUsers] = useFirebaseSync<{username: string, password: string}[]>(
+    'agrog_custom_users', 
+    getLocal('agrog_custom_users', [{ username: 'anderson', password: 'AgroGestao10726' }])
+  );
 
   // User Manager States
   const [newUsername, setNewUsername] = useState('');
@@ -62,69 +68,36 @@ export default function App() {
   const [userError, setUserError] = useState('');
 
   // 1. Core Original App States
-  const [clientsAndVehicles, setClientsAndVehicles] = useState<ClientOrVehicle[]>(() => {
-    const saved = localStorage.getItem('agrog_clients');
-    return saved ? JSON.parse(saved) : initialClientsAndVehicles;
-  });
-  const [localitySheets, setLocalitySheets] = useState<LocalitySheet[]>(() => {
-    const saved = localStorage.getItem('agrog_sheets');
-    return saved ? JSON.parse(saved) : initialLocalitySheets;
-  });
-  const [expenses, setExpenses] = useState<Expense[]>(() => {
-    const saved = localStorage.getItem('agrog_expenses');
-    return saved ? JSON.parse(saved) : initialExpenses;
-  });
+  const [clientsAndVehicles, setClientsAndVehicles] = useFirebaseSync<ClientOrVehicle[]>(
+    'agrog_clients', 
+    getLocal('agrog_clients', initialClientsAndVehicles)
+  );
+  const [localitySheets, setLocalitySheets] = useFirebaseSync<LocalitySheet[]>(
+    'agrog_sheets', 
+    getLocal('agrog_sheets', initialLocalitySheets)
+  );
+  const [expenses, setExpenses] = useFirebaseSync<Expense[]>(
+    'agrog_expenses', 
+    getLocal('agrog_expenses', initialExpenses)
+  );
 
   // 2. New Safra App States
-  const [motoristas, setMotoristas] = useState<Motorista[]>(() => {
-    const saved = localStorage.getItem('agrog_motoristas');
-    return saved ? JSON.parse(saved) : initialMotoristas;
-  });
-  const [areas, setAreas] = useState<Area[]>(() => {
-    const saved = localStorage.getItem('agrog_areas');
-    return saved ? JSON.parse(saved) : initialAreas;
-  });
-  const [maquinas, setMaquinas] = useState<Maquina[]>(() => {
-    const saved = localStorage.getItem('agrog_maquinas');
-    return saved ? JSON.parse(saved) : initialMaquinas;
-  });
-  const [producoes, setProducoes] = useState<Producao[]>(() => {
-    const saved = localStorage.getItem('agrog_producoes');
-    return saved ? JSON.parse(saved) : initialProducoes;
-  });
-
-  // Save States to LocalStorage
-  useEffect(() => {
-    localStorage.setItem('agrog_clients', JSON.stringify(clientsAndVehicles));
-  }, [clientsAndVehicles]);
-
-  useEffect(() => {
-    localStorage.setItem('agrog_sheets', JSON.stringify(localitySheets));
-  }, [localitySheets]);
-
-  useEffect(() => {
-    localStorage.setItem('agrog_expenses', JSON.stringify(expenses));
-  }, [expenses]);
-
-  useEffect(() => {
-    localStorage.setItem('agrog_motoristas', JSON.stringify(motoristas));
-  }, [motoristas]);
-
-  useEffect(() => {
-    localStorage.setItem('agrog_areas', JSON.stringify(areas));
-  }, [areas]);
-
-  useEffect(() => {
-    localStorage.setItem('agrog_maquinas', JSON.stringify(maquinas));
-  }, [maquinas]);
-
-  useEffect(() => {
-    localStorage.setItem('agrog_producoes', JSON.stringify(producoes));
-  }, [producoes]);
-
-  useEffect(() => {
-    localStorage.setItem('agrog_custom_users', JSON.stringify(customUsers));
-  }, [customUsers]);
+  const [motoristas, setMotoristas] = useFirebaseSync<Motorista[]>(
+    'agrog_motoristas', 
+    getLocal('agrog_motoristas', initialMotoristas)
+  );
+  const [areas, setAreas] = useFirebaseSync<Area[]>(
+    'agrog_areas', 
+    getLocal('agrog_areas', initialAreas)
+  );
+  const [maquinas, setMaquinas] = useFirebaseSync<Maquina[]>(
+    'agrog_maquinas', 
+    getLocal('agrog_maquinas', initialMaquinas)
+  );
+  const [producoes, setProducoes] = useFirebaseSync<Producao[]>(
+    'agrog_producoes', 
+    getLocal('agrog_producoes', initialProducoes)
+  );
 
   // Security guard for non-admin settings access
   useEffect(() => {
