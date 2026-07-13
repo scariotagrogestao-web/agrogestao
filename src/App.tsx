@@ -189,44 +189,6 @@ export default function App() {
     }
   };
 
-  const handleCreateUser = (e: React.FormEvent) => {
-    e.preventDefault();
-    setUserError('');
-    
-    const uClean = newUsername.trim().toLowerCase();
-    const pClean = newPassword.trim();
-    
-    if (!uClean || !pClean) {
-      setUserError('Preencha todos os campos.');
-      return;
-    }
-    
-    if (uClean === 'admin') {
-      setUserError('O usuário "admin" já é reservado pelo sistema.');
-      return;
-    }
-    
-    if (customUsers.some(u => u.username.toLowerCase() === uClean)) {
-      setUserError('Este usuário já existe.');
-      return;
-    }
-    
-    setCustomUsers(prev => [...prev, { username: uClean, password: pClean }]);
-    setNewUsername('');
-    setNewPassword('');
-    alert(`Usuário "${uClean}" criado com sucesso!`);
-  };
-
-  const handleDeleteUser = (usernameToDelete: string) => {
-    if (usernameToDelete.toLowerCase() === 'anderson') {
-      alert('O usuário "anderson" é o operador padrão e não pode ser excluído.');
-      return;
-    }
-    if (confirm(`Deseja mesmo remover o acesso do usuário "${usernameToDelete}"?`)) {
-      setCustomUsers(prev => prev.filter(u => u.username.toLowerCase() !== usernameToDelete.toLowerCase()));
-    }
-  };
-
   // Registry (Cadastro Geral) actions
   const handleAddClientOrVehicle = (item: ClientOrVehicle) => {
     setClientsAndVehicles(prev => [...prev, item]);
