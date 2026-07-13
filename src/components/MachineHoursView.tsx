@@ -442,7 +442,6 @@ export default function MachineHoursView({
               ></div>
             </div>
           </div>
-          </div>
         </div>
       </div>
 
