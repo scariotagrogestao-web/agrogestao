@@ -19,7 +19,6 @@ const menuItems = [
   { id: 'payments', label: 'Relatórios', icon: FileText },
   { id: 'safraDashboard', label: 'Métricas de Safra', icon: Sprout },
   { id: 'expenses', label: 'Controle de Gastos', icon: Receipt },
-  { id: 'settings', label: 'Configurações', icon: Settings },
 ];
 
 export default function Header({ 
@@ -31,10 +30,6 @@ export default function Header({
   isAdmin,
   onLogout
 }: HeaderProps) {
-  // Hide settings and history if the user is not admin
-  const filteredMenuItems = isAdmin 
-    ? menuItems 
-    : menuItems.filter(item => item.id !== 'settings' && item.id !== 'history');
   return (
     <header className="h-[72px] bg-gradient-to-b from-slate-900 to-slate-950 border-b border-black flex justify-between items-center px-8 w-full sticky top-0 z-40 shadow-[0_4px_15px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.05)] shrink-0">
       {/* Brand Logo / Identity */}
@@ -48,21 +43,21 @@ export default function Header({
       </div>
 
       {/* Center Horizontal Menu Navigation Tabs */}
-      <nav className="hidden lg:flex items-center gap-2 flex-1 justify-center">
-        {filteredMenuItems.map(item => {
+      <nav className="hidden lg:flex items-center gap-1 flex-1 justify-center">
+        {menuItems.map(item => {
           const Icon = item.icon;
           const isActive = currentView === item.id;
           return (
             <button
               key={item.id}
               onClick={() => onNavigate(item.id)}
-              className={`px-3 py-1.5 flex items-center gap-1.5 rounded-lg font-sans text-[10px] tracking-wider uppercase font-bold transition-all duration-200 cursor-pointer whitespace-nowrap border ${
+              className={`px-2 py-1.5 flex items-center gap-1 rounded-lg font-sans text-[10px] tracking-normal uppercase font-bold transition-all duration-200 cursor-pointer whitespace-nowrap border ${
                 isActive
                   ? 'bg-gradient-to-b from-emerald-600 to-emerald-800 text-white border-emerald-900 shadow-[inset_0_1px_1px_rgba(255,255,255,0.4),0_2px_4px_rgba(0,0,0,0.4)]'
                   : 'bg-transparent text-slate-400 border-transparent hover:text-slate-200 hover:bg-slate-800 hover:border-slate-700 hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),0_1px_2px_rgba(0,0,0,0.2)]'
               }`}
             >
-              <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)]' : ''}`} />
+              <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)]' : ''}`} />
               <span>{item.label}</span>
             </button>
           );
@@ -70,15 +65,31 @@ export default function Header({
       </nav>
 
       {/* Right User Actions */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 lg:gap-4">
         {/* Action icons */}
-        <button 
-          onClick={() => alert('Não há novas notificações.')}
-          className="w-9 h-9 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-900 transition-colors relative border-none bg-transparent"
-        >
-          <Bell className="w-4.5 h-4.5" />
-          <span className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-red-500"></span>
-        </button>
+        <div className="flex items-center gap-1">
+          {isAdmin && (
+            <button 
+              onClick={() => onNavigate('settings')}
+              className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors relative border-none cursor-pointer ${
+                currentView === 'settings' 
+                  ? 'bg-emerald-700 text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.4),0_2px_4px_rgba(0,0,0,0.4)]' 
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800 bg-transparent'
+              }`}
+              title="Configurações & Auditoria"
+            >
+              <Settings className="w-4.5 h-4.5" />
+            </button>
+          )}
+
+          <button 
+            onClick={() => alert('Não há novas notificações.')}
+            className="w-9 h-9 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors relative border-none bg-transparent cursor-pointer"
+          >
+            <Bell className="w-4.5 h-4.5" />
+            <span className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-red-500"></span>
+          </button>
+        </div>
 
         <div className="h-6 w-[1px] bg-slate-800 mx-1"></div>
 
