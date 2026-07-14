@@ -792,12 +792,11 @@ export default function App() {
           </form>
         </div>
       </div>
-      <footer className="bg-slate-950 border-t border-slate-800/50 py-4 mt-auto flex flex-col md:flex-row items-center justify-center gap-4 text-center shrink-0 w-full px-6">
-        <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">
+      <footer className="bg-slate-950 border-t border-slate-800/50 py-4 mt-auto flex flex-col md:flex-row items-center justify-between gap-4 shrink-0 w-full px-8">
+        <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest text-center md:text-left">
           © 2026 AgroGestão ERP — Sistema Integrado de Controle Agrícola & Safra
         </div>
-        <div className="hidden md:block w-px h-4 bg-slate-700"></div>
-        <div className="flex flex-col md:flex-row items-center justify-center gap-3 text-[10px] text-slate-400 font-medium tracking-wide">
+        <div className="flex flex-col md:flex-row items-center justify-center gap-3 text-[10px] text-slate-400 font-medium tracking-wide text-center md:text-right">
           <span>Todos os Direitos Reservados - IdeIA Gestão e Criação - By Joao Marcos Alves</span>
           <img src={logoIdeia} alt="IdeIA Logo" className="h-6 w-auto object-contain rounded brightness-110" />
         </div>
@@ -965,12 +964,11 @@ export default function App() {
         )}
       </main>
  
-      <footer className="bg-slate-950 border-t border-slate-800/50 py-4 flex flex-col md:flex-row items-center justify-center gap-4 text-center shrink-0 w-full px-6">
-        <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">
+      <footer className="bg-slate-950 border-t border-slate-800/50 py-4 flex flex-col md:flex-row items-center justify-between gap-4 shrink-0 w-full px-8">
+        <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest text-center md:text-left">
           © 2026 AgroGestão ERP — Sistema Integrado de Controle Agrícola & Safra
         </div>
-        <div className="hidden md:block w-px h-4 bg-slate-700"></div>
-        <div className="flex flex-col md:flex-row items-center justify-center gap-3 text-[10px] text-slate-400 font-medium tracking-wide">
+        <div className="flex flex-col md:flex-row items-center justify-center gap-3 text-[10px] text-slate-400 font-medium tracking-wide text-center md:text-right">
           <span>Todos os Direitos Reservados - IdeIA Gestão e Criação - By Joao Marcos Alves</span>
           <img src={logoIdeia} alt="IdeIA Logo" className="h-6 w-auto object-contain rounded brightness-110" />
         </div>
