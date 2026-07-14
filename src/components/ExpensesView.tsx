@@ -131,10 +131,12 @@ export default function ExpensesView({
       const matchesType = typeFilter === 'Todos os Tipos' || exp.type === typeFilter.toLowerCase();
       
       // Machine matches
-      const matchesMachine = machineFilter === 'Todas as Máquinas' || exp.machineName === machineFilter;
+      const matchesMachine = machineFilter === 'Todas as Máquinas' || 
+        (exp.machineName && exp.machineName.toLowerCase().includes(machineFilter.toLowerCase()));
 
       // Driver matches
-      const matchesDriver = driverFilter === 'Todos os Motoristas' || exp.responsibleName === driverFilter;
+      const matchesDriver = driverFilter === 'Todos os Motoristas' || 
+        (exp.responsibleName && exp.responsibleName.toLowerCase().includes(driverFilter.toLowerCase()));
 
       // Date range matches
       const matchesDate = (!startDate || exp.date >= startDate) && (!endDate || exp.date <= endDate);
