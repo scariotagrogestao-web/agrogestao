@@ -137,8 +137,14 @@ export default function ExpensesView({
         (exp.machineName && exp.machineName.toLowerCase().includes(machineFilter.toLowerCase()));
 
       // Driver matches
+      const driverLower = driverFilter.toLowerCase();
       const matchesDriver = driverFilter === 'Todos os Motoristas' || 
-        (exp.responsibleName && exp.responsibleName.toLowerCase().includes(driverFilter.toLowerCase()));
+        (exp.responsibleName && exp.responsibleName.toLowerCase().includes(driverLower)) ||
+        (exp.machineName && exp.machineName.toLowerCase().includes(driverLower)) ||
+        (exp.machineName && clientsAndVehicles.some(cv => 
+          cv.name.toLowerCase() === exp.machineName!.toLowerCase() && 
+          cv.responsible && cv.responsible.toLowerCase().includes(driverLower)
+        ));
 
       // Date range matches
       const matchesDate = (!startDate || exp.date >= startDate) && (!endDate || exp.date <= endDate);
