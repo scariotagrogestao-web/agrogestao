@@ -11,7 +11,8 @@ import DashboardSafraView from './components/DashboardSafraView';
 import SettingsView from './components/SettingsView';
 import * as XLSX from 'xlsx';
 import logoAgrogestao from './logo_agrogestao.png';
-  // ... existing imports remain unchanged
+import logoIdeia from './logo_ideia.jpeg';
+
   // Add rendering for Settings view
   // After existing view conditions, add:
   // {currentView === 'settings' && isAdmin && (
@@ -702,8 +703,9 @@ export default function App() {
   if (!currentUser) {
     return (
       <>
-        <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6 text-slate-100 font-sans antialiased">
-          <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl flex flex-col items-center gap-6 animate-in fade-in zoom-in-95 duration-200">
+        <div className="min-h-screen bg-slate-950 flex flex-col p-6 text-slate-100 font-sans antialiased">
+          <div className="flex-1 flex items-center justify-center w-full">
+            <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl flex flex-col items-center gap-6 animate-in fade-in zoom-in-95 duration-200">
           <img 
             src={logoAgrogestao} 
             alt="AgroGestão Logo" 
@@ -790,6 +792,17 @@ export default function App() {
           </form>
         </div>
       </div>
+      <footer className="bg-slate-950 border-t border-slate-800/50 py-4 mt-auto flex flex-col md:flex-row items-center justify-center gap-4 text-center shrink-0 w-full px-6">
+        <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">
+          © 2026 AgroGestão ERP — Sistema Integrado de Controle Agrícola & Safra
+        </div>
+        <div className="hidden md:block w-px h-4 bg-slate-700"></div>
+        <div className="flex flex-col md:flex-row items-center justify-center gap-3 text-[10px] text-slate-400 font-medium tracking-wide">
+          <span>Todos os Direitos Reservados - IdeIA Gestão e Criação - By Joao Marcos Alves</span>
+          <img src={logoIdeia} alt="IdeIA Logo" className="h-6 w-auto object-contain rounded brightness-110" />
+        </div>
+      </footer>
+    </div>
 
       {/* Forgot Password Modal */}
       {showForgotModal && (
@@ -952,8 +965,15 @@ export default function App() {
         )}
       </main>
  
-      <footer className="bg-white border-t border-slate-200 py-4 text-center text-[10px] font-semibold text-slate-400 uppercase tracking-widest shrink-0">
-        © 2026 AgroGestão ERP — Sistema Integrado de Controle Agrícola & Safra
+      <footer className="bg-slate-950 border-t border-slate-800/50 py-4 flex flex-col md:flex-row items-center justify-center gap-4 text-center shrink-0 w-full px-6">
+        <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">
+          © 2026 AgroGestão ERP — Sistema Integrado de Controle Agrícola & Safra
+        </div>
+        <div className="hidden md:block w-px h-4 bg-slate-700"></div>
+        <div className="flex flex-col md:flex-row items-center justify-center gap-3 text-[10px] text-slate-400 font-medium tracking-wide">
+          <span>Todos os Direitos Reservados - IdeIA Gestão e Criação - By Joao Marcos Alves</span>
+          <img src={logoIdeia} alt="IdeIA Logo" className="h-6 w-auto object-contain rounded brightness-110" />
+        </div>
       </footer>
     </div>
   );
