@@ -130,19 +130,26 @@ export default function ExpensesView({
   const filteredExpenses = useMemo(() => {
     const list = expenses.filter(exp => {
       // Type matches
-      const matchesType = typeFilter === 'Todos os Tipos' || exp.type === typeFilter.toLowerCase();
+      const typeLower = typeFilter.toLowerCase().trim();
+      const matchesType = typeFilter === 'Todos os Tipos' || 
+        (exp.type && exp.type.toLowerCase().includes(typeLower));
       
       // Machine matches
+      const machineLower = machineFilter.toLowerCase().trim();
       const matchesMachine = machineFilter === 'Todas as Máquinas' || 
-        (exp.machineName && exp.machineName.toLowerCase().includes(machineFilter.toLowerCase()));
+        (exp.machineName && exp.machineName.toLowerCase().includes(machineLower)) ||
+        (exp.responsibleName && clientsAndVehicles.some(cv => 
+          cv.responsible && cv.responsible.toLowerCase().includes(exp.responsibleName!.toLowerCase()) &&
+          cv.name.toLowerCase().includes(machineLower)
+        ));
 
       // Driver matches
-      const driverLower = driverFilter.toLowerCase();
+      const driverLower = driverFilter.toLowerCase().trim();
       const matchesDriver = driverFilter === 'Todos os Motoristas' || 
         (exp.responsibleName && exp.responsibleName.toLowerCase().includes(driverLower)) ||
         (exp.machineName && exp.machineName.toLowerCase().includes(driverLower)) ||
         (exp.machineName && clientsAndVehicles.some(cv => 
-          cv.name.toLowerCase() === exp.machineName!.toLowerCase() && 
+          cv.name.toLowerCase().trim() === exp.machineName!.toLowerCase().trim() && 
           cv.responsible && cv.responsible.toLowerCase().includes(driverLower)
         ));
 
