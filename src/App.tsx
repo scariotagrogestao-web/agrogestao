@@ -949,6 +949,7 @@ export default function App() {
             onAddExpense={handleAddExpense}
             onDeleteExpense={handleDeleteExpense}
             onExport={handleExportAllSpreadsheets}
+            searchQuery={globalSearch}
           />
         )}
  

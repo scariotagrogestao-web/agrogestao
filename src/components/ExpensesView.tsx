@@ -22,6 +22,7 @@ interface ExpensesViewProps {
   onAddExpense: (expense: Omit<Expense, 'id'>) => void;
   onDeleteExpense: (id: string) => void;
   onExport: () => void;
+  searchQuery?: string;
 }
 
 const todayISO = () => new Date().toISOString().split('T')[0];
@@ -31,7 +32,8 @@ export default function ExpensesView({
   clientsAndVehicles,
   onAddExpense, 
   onDeleteExpense,
-  onExport 
+  onExport,
+  searchQuery = ''
 }: ExpensesViewProps) {
   // Dynamic default date ranges from expenses
   const dates = useMemo(() => {
@@ -141,7 +143,16 @@ export default function ExpensesView({
       // Date range matches
       const matchesDate = (!startDate || exp.date >= startDate) && (!endDate || exp.date <= endDate);
 
-      return matchesType && matchesMachine && matchesDriver && matchesDate;
+      // Global Search
+      const search = searchQuery.toLowerCase().trim();
+      const matchesSearch = !search || (
+        (exp.type && exp.type.toLowerCase().includes(search)) ||
+        (exp.machineName && exp.machineName.toLowerCase().includes(search)) ||
+        (exp.responsibleName && exp.responsibleName.toLowerCase().includes(search)) ||
+        (exp.value.toString().includes(search))
+      );
+
+      return matchesType && matchesMachine && matchesDriver && matchesDate && matchesSearch;
     });
 
     // Sort list by date
@@ -152,7 +163,7 @@ export default function ExpensesView({
         return a.date.localeCompare(b.date);
       }
     });
-  }, [expenses, typeFilter, machineFilter, driverFilter, sortOrder, startDate, endDate]);
+  }, [expenses, typeFilter, machineFilter, driverFilter, sortOrder, startDate, endDate, searchQuery]);
 
   // Compute stats based on filtered expenses
   const stats = useMemo(() => {
