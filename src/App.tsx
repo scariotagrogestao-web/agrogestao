@@ -931,10 +931,6 @@ export default function App() {
           />
         )}
  
-        {currentView === 'history' && (
-          <HistoryView logs={auditLogs} />
-        )}
-
         {currentView === 'settings' && (
           <SettingsView
             customUsers={customUsers}
@@ -942,6 +938,7 @@ export default function App() {
             handleExportData={handleExportData}
             handleImportData={handleImportData}
             isAdmin={isCurrentUserAdmin}
+            auditLogs={auditLogs}
           />
         )}
       </main>

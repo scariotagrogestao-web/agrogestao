@@ -19,7 +19,6 @@ const menuItems = [
   { id: 'payments', label: 'Relatórios', icon: FileText },
   { id: 'safraDashboard', label: 'Métricas de Safra', icon: Sprout },
   { id: 'expenses', label: 'Controle de Gastos', icon: Receipt },
-  { id: 'history', label: 'Histórico', icon: History },
   { id: 'settings', label: 'Configurações', icon: Settings },
 ];
 

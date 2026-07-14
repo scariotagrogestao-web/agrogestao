@@ -1,6 +1,8 @@
 // src/components/SettingsView.tsx
 import React, { useState } from 'react';
-import { Download, Upload, Database, Trash2, User, Plus } from 'lucide-react';
+import { Download, Upload, Database, Trash2, User, Plus, History } from 'lucide-react';
+import { AuditLog } from '../types';
+import HistoryView from './HistoryView';
 
 export interface CustomUser {
   username: string;
@@ -14,9 +16,11 @@ interface SettingsViewProps {
   handleExportData: () => void;
   handleImportData: (e: React.ChangeEvent<HTMLInputElement>) => void;
   isAdmin: boolean;
+  auditLogs?: AuditLog[];
 }
 
-export default function SettingsView({ customUsers, setCustomUsers, handleExportData, handleImportData, isAdmin }: SettingsViewProps) {
+export default function SettingsView({ customUsers, setCustomUsers, handleExportData, handleImportData, isAdmin, auditLogs = [] }: SettingsViewProps) {
+  const [activeTab, setActiveTab] = useState<'geral' | 'auditoria'>('geral');
   const [newUsername, setNewUsername] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [newUserRole, setNewUserRole] = useState<'admin' | 'user'>('user');
@@ -80,13 +84,31 @@ export default function SettingsView({ customUsers, setCustomUsers, handleExport
   };
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-lg space-y-8 text-slate-100">
-      {/* Backup & Export Section */}
-      <section className="space-y-4">
-        <h2 className="text-lg font-bold flex items-center gap-2 text-emerald-400">
-          <Database className="w-5 h-5" /> Configurações do Sistema
-        </h2>
-        <p className="text-xs text-slate-400">Gerencie a persistência dos dados e backups do AgroGestão.</p>
+    <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-lg space-y-6 text-slate-100">
+      
+      <div className="flex gap-4 border-b border-slate-800 pb-2">
+        <button 
+          onClick={() => setActiveTab('geral')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-t-lg font-bold text-sm transition-colors ${activeTab === 'geral' ? 'bg-slate-800 text-emerald-400 border-b-2 border-emerald-500' : 'text-slate-500 hover:text-slate-300'}`}
+        >
+          <Database className="w-4 h-4" /> Configurações Gerais
+        </button>
+        <button 
+          onClick={() => setActiveTab('auditoria')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-t-lg font-bold text-sm transition-colors ${activeTab === 'auditoria' ? 'bg-slate-800 text-emerald-400 border-b-2 border-emerald-500' : 'text-slate-500 hover:text-slate-300'}`}
+        >
+          <History className="w-4 h-4" /> Histórico (Auditoria)
+        </button>
+      </div>
+
+      {activeTab === 'geral' ? (
+        <div className="space-y-8">
+          {/* Backup & Export Section */}
+          <section className="space-y-4">
+            <h2 className="text-lg font-bold flex items-center gap-2 text-emerald-400">
+              <Database className="w-5 h-5" /> Configurações do Sistema
+            </h2>
+            <p className="text-xs text-slate-400">Gerencie a persistência dos dados e backups do AgroGestão.</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-700">
           {/* Export */}
           <div className="border border-slate-700 rounded-lg p-4 space-y-3">
@@ -198,6 +220,10 @@ export default function SettingsView({ customUsers, setCustomUsers, handleExport
             )}
           </form>
         </section>
+      )}
+        </div>
+      ) : (
+        <HistoryView logs={auditLogs} />
       )}
     </div>
   );
