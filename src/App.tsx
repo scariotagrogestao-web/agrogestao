@@ -796,7 +796,7 @@ export default function App() {
         <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest text-center md:text-left">
           © 2026 AgroGestão ERP — Sistema Integrado de Controle Agrícola & Safra
         </div>
-        <div className="flex flex-col md:flex-row items-center justify-center gap-3 text-[10px] text-slate-400 font-medium tracking-wide text-center md:text-right">
+        <div className="flex flex-col md:flex-row items-center justify-center gap-3 text-[10px] text-slate-400 font-semibold uppercase tracking-widest text-center md:text-right">
           <span>Todos os Direitos Reservados - IdeIA Gestão e Criação - By Joao Marcos Alves</span>
           <img src={logoIdeia} alt="IdeIA Logo" className="h-6 w-auto object-contain rounded brightness-110" />
         </div>
@@ -968,7 +968,7 @@ export default function App() {
         <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest text-center md:text-left">
           © 2026 AgroGestão ERP — Sistema Integrado de Controle Agrícola & Safra
         </div>
-        <div className="flex flex-col md:flex-row items-center justify-center gap-3 text-[10px] text-slate-400 font-medium tracking-wide text-center md:text-right">
+        <div className="flex flex-col md:flex-row items-center justify-center gap-3 text-[10px] text-slate-400 font-semibold uppercase tracking-widest text-center md:text-right">
           <span>Todos os Direitos Reservados - IdeIA Gestão e Criação - By Joao Marcos Alves</span>
           <img src={logoIdeia} alt="IdeIA Logo" className="h-6 w-auto object-contain rounded brightness-110" />
         </div>
