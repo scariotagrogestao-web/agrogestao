@@ -1,4 +1,4 @@
-import { Search, Bell, HelpCircle, LayoutDashboard, Users, Tractor, Receipt, Settings, Scale, FileText, Sprout, LogOut } from 'lucide-react';
+import { Search, Bell, HelpCircle, LayoutDashboard, Users, Tractor, Receipt, Settings, Scale, FileText, Sprout, LogOut, History } from 'lucide-react';
 import logoImg from '../logo_agrogestao.png';
 
 interface HeaderProps {
@@ -19,6 +19,7 @@ const menuItems = [
   { id: 'payments', label: 'Relatórios', icon: FileText },
   { id: 'safraDashboard', label: 'Métricas de Safra', icon: Sprout },
   { id: 'expenses', label: 'Controle de Gastos', icon: Receipt },
+  { id: 'history', label: 'Histórico', icon: History },
   { id: 'settings', label: 'Configurações', icon: Settings },
 ];
 
@@ -31,10 +32,10 @@ export default function Header({
   isAdmin,
   onLogout
 }: HeaderProps) {
-  // Hide settings if the user is not admin
+  // Hide settings and history if the user is not admin
   const filteredMenuItems = isAdmin 
     ? menuItems 
-    : menuItems.filter(item => item.id !== 'settings');
+    : menuItems.filter(item => item.id !== 'settings' && item.id !== 'history');
   return (
     <header className="h-[72px] bg-gradient-to-b from-slate-900 to-slate-950 border-b border-black flex justify-between items-center px-8 w-full sticky top-0 z-40 shadow-[0_4px_15px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.05)] shrink-0">
       {/* Brand Logo / Identity */}

@@ -37,3 +37,10 @@ export interface Expense {
   responsibleName?: string;
 }
 
+export interface AuditLog {
+  id: string;
+  timestamp: string;
+  user: string;
+  action: string;
+  details: string;
+}

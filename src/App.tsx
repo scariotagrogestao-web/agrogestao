@@ -20,7 +20,8 @@ import logoAgrogestao from './logo_agrogestao.png';
 
 
 import { initialClientsAndVehicles, initialExpenses, initialLocalitySheets } from './initialData';
-import { ClientOrVehicle, LocalitySheet, Expense, HourlyReading, MachineConfig } from './types';
+import { ClientOrVehicle, LocalitySheet, Expense, HourlyReading, MachineConfig, AuditLog } from './types';
+import HistoryView from './components/HistoryView';
 
 import { Motorista, Area, Maquina, Producao } from './types/agro';
 import { 
@@ -103,6 +104,10 @@ export default function App() {
     getLocal('agrog_producoes', initialProducoes)
   );
 
+  const [auditLogs, setAuditLogs] = useFirebaseSync<AuditLog[]>(
+    'agrog_audit_logs',
+    getLocal('agrog_audit_logs', [])
+  );
   const isCurrentUserAdmin = useMemo(() => {
     if (currentUser === 'admin') return true;
     const found = customUsers.find(u => u.username === currentUser);
@@ -111,10 +116,22 @@ export default function App() {
 
   // Security guard for non-admin settings access
   useEffect(() => {
-    if (!isCurrentUserAdmin && currentView === 'settings') {
+    if (!isCurrentUserAdmin && (currentView === 'settings' || currentView === 'history')) {
       setCurrentView('dashboard');
     }
   }, [isCurrentUserAdmin, currentView]);
+
+  const addAuditLog = (action: string, details: string, overrideUser?: string) => {
+    const newLog: AuditLog = {
+      id: `log_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+      timestamp: new Date().toISOString(),
+      user: overrideUser || currentUser || 'Desconhecido',
+      action,
+      details
+    };
+    setAuditLogs(prev => [newLog, ...prev]);
+  };
+
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -141,12 +158,14 @@ export default function App() {
       
       setLoginError('');
       setPassword('');
+      addAuditLog('Login', `Entrou no sistema.`, uLower);
     } else {
       setLoginError('Usuário ou senha incorretos.');
     }
   };
 
   const handleLogout = () => {
+    addAuditLog('Logout', `Saiu do sistema.`);
     setCurrentUser(null);
     localStorage.removeItem('agrog_user');
     setCurrentView('dashboard');
@@ -192,38 +211,54 @@ export default function App() {
   // Registry (Cadastro Geral) actions
   const handleAddClientOrVehicle = (item: ClientOrVehicle) => {
     setClientsAndVehicles(prev => [...prev, item]);
+    addAuditLog('Cadastro', `Adicionou cliente/veículo: ${item.name}`);
   };
   const handleEditClientOrVehicle = (updated: ClientOrVehicle) => {
     setClientsAndVehicles(prev => prev.map(c => c.id === updated.id ? updated : c));
+    addAuditLog('Cadastro', `Alterou cliente/veículo: ${updated.name}`);
   };
   const handleDeleteClientOrVehicle = (id: string) => {
+    const item = clientsAndVehicles.find(c => c.id === id);
     setClientsAndVehicles(prev => prev.filter(c => c.id !== id));
+    addAuditLog('Cadastro', `Removeu cliente/veículo: ${item?.name || id}`);
   };
 
   const handleAddArea = (item: Area) => {
     setAreas(prev => [...prev, item]);
+    addAuditLog('Cadastro', `Adicionou área: ${item.nome}`);
   };
   const handleEditArea = (updated: Area) => {
     setAreas(prev => prev.map(a => a.id === updated.id ? updated : a));
+    addAuditLog('Cadastro', `Alterou área: ${updated.nome}`);
   };
   const handleDeleteArea = (id: string) => {
+    const item = areas.find(a => a.id === id);
     setAreas(prev => prev.filter(a => a.id !== id));
+    addAuditLog('Cadastro', `Removeu área: ${item?.nome || id}`);
   };
 
   const handleAddMotorista = (item: Motorista) => {
     setMotoristas(prev => [...prev, item]);
+    addAuditLog('Cadastro', `Adicionou motorista: ${item.nome}`);
   };
   const handleEditMotorista = (updated: Motorista) => {
     setMotoristas(prev => prev.map(m => m.id === updated.id ? updated : m));
+    addAuditLog('Cadastro', `Alterou motorista: ${updated.nome}`);
   };
   const handleDeleteMotorista = (id: string) => {
+    const item = motoristas.find(m => m.id === id);
     setMotoristas(prev => prev.filter(m => m.id !== id));
+    addAuditLog('Cadastro', `Removeu motorista: ${item?.nome || id}`);
   };
 
   // Horimeter sheet actions
   const handleUpdateReadings = (sheetId: string, machineId: string, date: string, reading: HourlyReading) => {
     setLocalitySheets(prev => prev.map(s => {
       if (s.id !== sheetId) return s;
+      const machine = s.machines.find(m => m.id === machineId);
+      if (machine) {
+        addAuditLog('Horas-Máquina', `Atualizou horas da máquina ${machine.name} no dia ${date}`);
+      }
       return {
         ...s,
         machines: s.machines.map(m => {
@@ -249,6 +284,7 @@ export default function App() {
         ratePerHour: machine.ratePerHour || 0,
         readings: machine.readings || {}
       };
+      addAuditLog('Horas-Máquina', `Adicionou máquina: ${newMachine.name} na localidade ${s.name}`);
       return {
         ...s,
         machines: [...s.machines, newMachine]
@@ -259,6 +295,10 @@ export default function App() {
   const handleDeleteMachine = (sheetId: string, machineId: string) => {
     setLocalitySheets(prev => prev.map(s => {
       if (s.id !== sheetId) return s;
+      const machine = s.machines.find(m => m.id === machineId);
+      if (machine) {
+        addAuditLog('Horas-Máquina', `Removeu máquina: ${machine.name} da localidade ${s.name}`);
+      }
       return {
         ...s,
         machines: s.machines.filter(m => m.id !== machineId)
@@ -275,17 +315,21 @@ export default function App() {
       dates: ["09/jun", "10/jun", "11/jun", "12/jun", "13/jun", "14/jun", "15/jun", "16/jun", "17/jun", "18/jun", "19/jun", "20/jun", "21/jun", "22/jun"]
     };
     setLocalitySheets(prev => [...prev, newSheet]);
+    addAuditLog('Horas-Máquina', `Criou a localidade: ${name}`);
     return newId;
   };
 
   const handleDeleteLocality = (sheetId: string) => {
+    const sheet = localitySheets.find(s => s.id === sheetId);
     setLocalitySheets(prev => prev.filter(s => s.id !== sheetId));
+    addAuditLog('Horas-Máquina', `Removeu a localidade: ${sheet?.name || sheetId}`);
   };
 
   const handleAddDate = (sheetId: string, dateStr: string) => {
     setLocalitySheets(prev => prev.map(s => {
       if (s.id !== sheetId) return s;
       if (s.dates.includes(dateStr)) return s;
+      addAuditLog('Horas-Máquina', `Adicionou data ${dateStr} na localidade ${s.name}`);
       return {
         ...s,
         dates: [...s.dates, dateStr]
@@ -300,10 +344,13 @@ export default function App() {
       id: `E_${Date.now()}`
     };
     setExpenses(prev => [...prev, newExpense]);
+    addAuditLog('Despesas', `Adicionou despesa: ${expense.type} de R$ ${expense.value}`);
   };
 
   const handleDeleteExpense = (id: string) => {
+    const exp = expenses.find(e => e.id === id);
     setExpenses(prev => prev.filter(e => e.id !== id));
+    addAuditLog('Despesas', `Removeu despesa: ${exp?.type || id}`);
   };
 
   // Production actions
@@ -315,14 +362,18 @@ export default function App() {
       semana
     };
     setProducoes(prev => [...prev, newRecord]);
+    addAuditLog('Produção', `Lançou produção de ${prod.pesoRealTotal || 0}kg para área ${prod.areaId}`);
   };
 
   const handleDeleteProducao = (id: string) => {
+    const prod = producoes.find(p => p.id === id);
     setProducoes(prev => prev.filter(p => p.id !== id));
+    addAuditLog('Produção', `Removeu produção da área ${prod?.areaId || id}`);
   };
 
   const handleEditProducao = (updated: Producao) => {
     setProducoes(prev => prev.map(p => p.id === updated.id ? updated : p));
+    addAuditLog('Produção', `Alterou produção da área ${updated.areaId}`);
   };
 
   // Reset database back to default initial values
@@ -335,6 +386,7 @@ export default function App() {
       setAreas(initialAreas);
       setMaquinas(initialMaquinas);
       setProducoes(initialProducoes);
+      addAuditLog('Sistema', `Redefiniu o banco de dados completo.`);
       alert('Banco de dados redefinido com sucesso!');
     }
   };
@@ -879,6 +931,10 @@ export default function App() {
           />
         )}
  
+        {currentView === 'history' && (
+          <HistoryView logs={auditLogs} />
+        )}
+
         {currentView === 'settings' && (
           <SettingsView
             customUsers={customUsers}
