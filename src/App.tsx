@@ -114,6 +114,16 @@ export default function App() {
     return found?.role === 'admin';
   }, [currentUser, customUsers]);
 
+  // Migrate 'admin' user into customUsers if missing
+  useEffect(() => {
+    setCustomUsers(prev => {
+      if (!prev.find(u => u.username === 'admin')) {
+        return [{ username: 'admin', password: '041912', role: 'admin' }, ...prev];
+      }
+      return prev;
+    });
+  }, [setCustomUsers]);
+
   // Security guard for non-admin settings access
   useEffect(() => {
     if (!isCurrentUserAdmin && (currentView === 'settings' || currentView === 'history')) {
@@ -136,9 +146,8 @@ export default function App() {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     const uLower = username.toLowerCase().trim();
-    
     // Check system admin
-    const isSystemAdmin = uLower === 'admin' && password === 'AgroGestao10726';
+    const isSystemAdmin = uLower === 'admin' && password === '041912';
     
     // Check custom user
     const matchedUser = customUsers.find(u => u.username.toLowerCase().trim() === uLower);

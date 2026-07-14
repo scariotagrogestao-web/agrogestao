@@ -35,10 +35,6 @@ export default function SettingsView({ customUsers, setCustomUsers, handleExport
       setUserError('Preencha todos os campos.');
       return;
     }
-    if (uClean === 'admin') {
-      setUserError('O usuário "admin" já existe e é reservado.');
-      return;
-    }
     if (customUsers.some(u => u.username.toLowerCase() === uClean)) {
       setUserError('Este usuário já existe.');
       return;
@@ -51,8 +47,8 @@ export default function SettingsView({ customUsers, setCustomUsers, handleExport
   };
 
   const handleDeleteUser = (usernameToDelete: string) => {
-    if (usernameToDelete.toLowerCase() === 'anderson') {
-      alert('O usuário "anderson" não pode ser excluído.');
+    if (usernameToDelete.toLowerCase() === 'anderson' || usernameToDelete.toLowerCase() === 'admin') {
+      alert(`O usuário "${usernameToDelete}" é um administrador do sistema e não pode ser excluído.`);
       return;
     }
     if (confirm(`Deseja remover o acesso do usuário "${usernameToDelete}"?`)) {
@@ -61,8 +57,8 @@ export default function SettingsView({ customUsers, setCustomUsers, handleExport
   };
 
   const handleToggleRole = (usernameToToggle: string, currentRole: string | undefined) => {
-    if (usernameToToggle.toLowerCase() === 'anderson') {
-      alert('A permissão do usuário "anderson" não pode ser alterada.');
+    if (usernameToToggle.toLowerCase() === 'anderson' || usernameToToggle.toLowerCase() === 'admin') {
+      alert(`A permissão do usuário "${usernameToToggle}" não pode ser alterada.`);
       return;
     }
     const newRole = currentRole === 'admin' ? 'user' : 'admin';
@@ -149,6 +145,9 @@ export default function SettingsView({ customUsers, setCustomUsers, handleExport
                   </span>
                 </span>
                 <div className="flex items-center gap-3 self-end md:self-auto">
+                  <span className="text-xs text-slate-400 font-mono bg-slate-900 px-2 py-1 rounded select-all border border-slate-700">
+                    {user.password}
+                  </span>
                   <button
                     onClick={() => handleChangePassword(user.username)}
                     className="text-xs text-slate-400 hover:text-emerald-400 underline decoration-slate-600 underline-offset-2 transition-colors"
