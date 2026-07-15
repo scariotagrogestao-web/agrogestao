@@ -219,8 +219,12 @@ files.forEach(file => {
           // We can determine by checking the next data row where type is a string and value is a number
           for (let nr = r + 1; nr < dataRows.length; nr++) {
             if (typeof dataRows[nr][dIdx] === 'number') {
-               if (typeof dataRows[nr][descIdx + 1] === 'number') vIdx = descIdx + 1;
-               else if (typeof dataRows[nr][descIdx + 2] === 'number') vIdx = descIdx + 2;
+               for (let i = 1; i <= 5; i++) {
+                 if (typeof dataRows[nr][descIdx + i] === 'number') {
+                   vIdx = descIdx + i;
+                   break;
+                 }
+               }
                break;
             }
           }
