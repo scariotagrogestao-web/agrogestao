@@ -142,7 +142,7 @@ export const initialLocalitySheets: LocalitySheet[] = [
     "name": "STA Aracangua",
     "machines": [
       {
-        "id": "M_1784122351932_60",
+        "id": "M_1784136052834_26",
         "name": "RAMOS SILAGEM - FR 700",
         "ratePerHour": 800,
         "readings": {
@@ -181,7 +181,7 @@ export const initialLocalitySheets: LocalitySheet[] = [
         }
       },
       {
-        "id": "M_1784122351932_34",
+        "id": "M_1784136052834_18",
         "name": "2220 RODRIGO",
         "ratePerHour": 800,
         "readings": {
@@ -244,7 +244,7 @@ export const initialLocalitySheets: LocalitySheet[] = [
         }
       },
       {
-        "id": "M_1784122351932_78",
+        "id": "M_1784136052834_22",
         "name": "CONSTELLATION CHICO",
         "ratePerHour": 180,
         "readings": {
@@ -307,7 +307,7 @@ export const initialLocalitySheets: LocalitySheet[] = [
         }
       },
       {
-        "id": "M_1784122351932_40",
+        "id": "M_1784136052834_36",
         "name": "COWBOY",
         "ratePerHour": 800,
         "readings": {
@@ -370,7 +370,7 @@ export const initialLocalitySheets: LocalitySheet[] = [
         }
       },
       {
-        "id": "M_1784122351932_51",
+        "id": "M_1784136052834_63",
         "name": "2213 LEONIR mula",
         "ratePerHour": 800,
         "readings": {
@@ -433,7 +433,7 @@ export const initialLocalitySheets: LocalitySheet[] = [
         }
       },
       {
-        "id": "M_1784122351932_22",
+        "id": "M_1784136052834_84",
         "name": "descrição",
         "ratePerHour": 800,
         "readings": {
@@ -472,7 +472,7 @@ export const initialLocalitySheets: LocalitySheet[] = [
         }
       },
       {
-        "id": "M_1784122351932_68",
+        "id": "M_1784136052834_75",
         "name": "Coluna3",
         "ratePerHour": 800,
         "readings": {
@@ -511,13 +511,13 @@ export const initialLocalitySheets: LocalitySheet[] = [
         }
       },
       {
-        "id": "M_1784122351932_72",
+        "id": "M_1784136052834_77",
         "name": "Coluna4",
         "ratePerHour": 800,
         "readings": {}
       },
       {
-        "id": "M_1784122351932_5",
+        "id": "M_1784136052834_85",
         "name": "Coluna5",
         "ratePerHour": 800,
         "readings": {}
@@ -545,7 +545,7 @@ export const initialLocalitySheets: LocalitySheet[] = [
     "name": "CAMPANELLI CAPIM",
     "machines": [
       {
-        "id": "M_1784122351934_34",
+        "id": "M_1784136052836_59",
         "name": "RAMOS SILAGEM - FR 700",
         "ratePerHour": 800,
         "readings": {
@@ -556,7 +556,7 @@ export const initialLocalitySheets: LocalitySheet[] = [
         }
       },
       {
-        "id": "M_1784122351934_99",
+        "id": "M_1784136052836_72",
         "name": "Gago",
         "ratePerHour": 800,
         "readings": {
@@ -624,7 +624,7 @@ export const initialLocalitySheets: LocalitySheet[] = [
     "name": "GASTÃO VIDIGAL",
     "machines": [
       {
-        "id": "M_1784122351934_13",
+        "id": "M_1784136052836_36",
         "name": "RAMOS SILAGEM - FR 700",
         "ratePerHour": 800,
         "readings": {
@@ -639,7 +639,7 @@ export const initialLocalitySheets: LocalitySheet[] = [
         }
       },
       {
-        "id": "M_1784122351934_4",
+        "id": "M_1784136052836_43",
         "name": "2220 RODRIGO",
         "ratePerHour": 800,
         "readings": {
@@ -682,7 +682,7 @@ export const initialLocalitySheets: LocalitySheet[] = [
         }
       },
       {
-        "id": "M_1784122351934_18",
+        "id": "M_1784136052836_10",
         "name": "CONSTELLATION CHICO",
         "ratePerHour": 180,
         "readings": {
@@ -725,7 +725,7 @@ export const initialLocalitySheets: LocalitySheet[] = [
         }
       },
       {
-        "id": "M_1784122351934_33",
+        "id": "M_1784136052836_70",
         "name": "COWBOY",
         "ratePerHour": 800,
         "readings": {
@@ -768,7 +768,7 @@ export const initialLocalitySheets: LocalitySheet[] = [
         }
       },
       {
-        "id": "M_1784122351934_36",
+        "id": "M_1784136052836_80",
         "name": "2213 LEONIR mula",
         "ratePerHour": 800,
         "readings": {
@@ -846,7 +846,7 @@ export const initialLocalitySheets: LocalitySheet[] = [
     "name": "Fechamento 04  05.06",
     "machines": [
       {
-        "id": "M_1784122351966_90",
+        "id": "M_1784136052869_24",
         "name": "RAMOS SILAGEM - FR 9050",
         "ratePerHour": 900,
         "readings": {
@@ -909,7 +909,7 @@ export const initialLocalitySheets: LocalitySheet[] = [
         }
       },
       {
-        "id": "M_1784122351966_85",
+        "id": "M_1784136052869_58",
         "name": "CARGO 2425",
         "ratePerHour": 120,
         "readings": {
@@ -980,7 +980,7 @@ export const initialLocalitySheets: LocalitySheet[] = [
         }
       },
       {
-        "id": "M_1784122351966_73",
+        "id": "M_1784136052869_9",
         "name": "CARGO 2631",
         "ratePerHour": 120,
         "readings": {
@@ -1047,7 +1047,7 @@ export const initialLocalitySheets: LocalitySheet[] = [
         }
       },
       {
-        "id": "M_1784122351966_85",
+        "id": "M_1784136052869_63",
         "name": "CONSTELLATION",
         "ratePerHour": 120,
         "readings": {
@@ -1142,7 +1142,7 @@ export const initialLocalitySheets: LocalitySheet[] = [
     "name": "Fechamen to 05",
     "machines": [
       {
-        "id": "M_1784122351966_80",
+        "id": "M_1784136052870_47",
         "name": "RAMOS SILAGEM - FR 9050",
         "ratePerHour": 900,
         "readings": {
@@ -1213,7 +1213,7 @@ export const initialLocalitySheets: LocalitySheet[] = [
         }
       },
       {
-        "id": "M_1784122351966_26",
+        "id": "M_1784136052870_96",
         "name": "CARGO 2425",
         "ratePerHour": 120,
         "readings": {
@@ -1324,7 +1324,7 @@ export const initialLocalitySheets: LocalitySheet[] = [
         }
       },
       {
-        "id": "M_1784122351966_43",
+        "id": "M_1784136052870_60",
         "name": "CARGO 2631",
         "ratePerHour": 120,
         "readings": {
@@ -1431,7 +1431,7 @@ export const initialLocalitySheets: LocalitySheet[] = [
         }
       },
       {
-        "id": "M_1784122351966_48",
+        "id": "M_1784136052870_23",
         "name": "CONSTELLATION",
         "ratePerHour": 120,
         "readings": {
@@ -1568,7 +1568,7 @@ export const initialLocalitySheets: LocalitySheet[] = [
     "name": "Rogerio Boa esperança",
     "machines": [
       {
-        "id": "M_1784122351981_91",
+        "id": "M_1784136052886_89",
         "name": "JD7250",
         "ratePerHour": 800,
         "readings": {
@@ -1599,7 +1599,7 @@ export const initialLocalitySheets: LocalitySheet[] = [
         }
       },
       {
-        "id": "M_1784122351981_40",
+        "id": "M_1784136052886_74",
         "name": "LECÃO",
         "ratePerHour": 800,
         "readings": {
@@ -1654,7 +1654,7 @@ export const initialLocalitySheets: LocalitySheet[] = [
         }
       },
       {
-        "id": "M_1784122351981_64",
+        "id": "M_1784136052886_63",
         "name": "CLAUDINEI 1620",
         "ratePerHour": 180,
         "readings": {
@@ -1709,7 +1709,7 @@ export const initialLocalitySheets: LocalitySheet[] = [
         }
       },
       {
-        "id": "M_1784122351981_56",
+        "id": "M_1784136052886_96",
         "name": "CAMINHÃO",
         "ratePerHour": 180,
         "readings": {
@@ -1784,7 +1784,7 @@ export const initialLocalitySheets: LocalitySheet[] = [
     "name": "Pedagio lavinia",
     "machines": [
       {
-        "id": "M_1784122351983_30",
+        "id": "M_1784136052886_82",
         "name": "JD7250",
         "ratePerHour": 800,
         "readings": {
@@ -1807,7 +1807,7 @@ export const initialLocalitySheets: LocalitySheet[] = [
         }
       },
       {
-        "id": "M_1784122351983_56",
+        "id": "M_1784136052886_23",
         "name": "LECÃO",
         "ratePerHour": 800,
         "readings": {
@@ -1870,7 +1870,7 @@ export const initialLocalitySheets: LocalitySheet[] = [
         }
       },
       {
-        "id": "M_1784122351983_92",
+        "id": "M_1784136052886_89",
         "name": "CLAUDINEI 1620",
         "ratePerHour": 180,
         "readings": {
@@ -1955,83 +1955,146 @@ export const initialLocalitySheets: LocalitySheet[] = [
 export const initialExpenses: Expense[] = [
   {
     "id": "E_1",
+    "date": "2026-06-10",
+    "type": "diesel",
+    "value": 5418,
+    "localityName": "STA Aracangua"
+  },
+  {
+    "id": "E_2",
+    "date": "2026-06-11",
+    "type": "diesel",
+    "value": 6134.4,
+    "localityName": "STA Aracangua"
+  },
+  {
+    "id": "E_3",
+    "date": "2026-06-18",
+    "type": "diesel",
+    "value": 6202.18,
+    "localityName": "STA Aracangua"
+  },
+  {
+    "id": "E_4",
+    "date": "2026-06-20",
+    "type": "diesel",
+    "value": 7079.6,
+    "localityName": "STA Aracangua"
+  },
+  {
+    "id": "E_5",
+    "date": "2026-06-21",
+    "type": "diesel",
+    "value": 5912.7,
+    "localityName": "STA Aracangua"
+  },
+  {
+    "id": "E_6",
+    "date": "2026-06-22",
+    "type": "diesel",
+    "value": 782.5,
+    "localityName": "STA Aracangua"
+  },
+  {
+    "id": "E_7",
+    "date": "2026-06-13",
+    "type": "alimentação",
+    "value": 2760,
+    "localityName": "STA Aracangua"
+  },
+  {
+    "id": "E_8",
+    "date": "2026-06-20",
+    "type": "alimentação",
+    "value": 1000,
+    "localityName": "STA Aracangua"
+  },
+  {
+    "id": "E_9",
+    "date": "2026-06-22",
+    "type": "alimentação",
+    "value": 2969,
+    "localityName": "STA Aracangua"
+  },
+  {
+    "id": "E_10",
     "date": "2026-06-17",
     "type": "alimentação",
     "value": 16,
     "localityName": "Rogerio Boa esperança"
   },
   {
-    "id": "E_2",
+    "id": "E_11",
     "date": "2026-06-17",
     "type": "gasolina",
     "value": 257.8,
     "localityName": "Rogerio Boa esperança"
   },
   {
-    "id": "E_3",
+    "id": "E_12",
     "date": "2026-06-17",
     "type": "pedagio",
     "value": 33.9,
     "localityName": "Rogerio Boa esperança"
   },
   {
-    "id": "E_4",
+    "id": "E_13",
     "date": "2026-06-17",
     "type": "gasolina",
     "value": 265.87,
     "localityName": "Rogerio Boa esperança"
   },
   {
-    "id": "E_5",
+    "id": "E_14",
     "date": "2026-06-18",
     "type": "alimentação",
     "value": 65,
     "localityName": "Rogerio Boa esperança"
   },
   {
-    "id": "E_6",
+    "id": "E_15",
     "date": "2026-06-18",
     "type": "alimentação",
     "value": 223.16,
     "localityName": "Rogerio Boa esperança"
   },
   {
-    "id": "E_7",
+    "id": "E_16",
     "date": "2026-06-20",
     "type": "diesel",
     "value": 6690,
     "localityName": "Rogerio Boa esperança"
   },
   {
-    "id": "E_8",
+    "id": "E_17",
     "date": "2026-06-22",
     "type": "diesel",
     "value": 6690,
     "localityName": "Rogerio Boa esperança"
   },
   {
-    "id": "E_9",
+    "id": "E_18",
     "date": "2026-06-26",
     "type": "alimentação",
     "value": 879,
     "localityName": "Rogerio Boa esperança"
   },
   {
-    "id": "E_10",
+    "id": "E_19",
     "date": "2026-06-30",
     "type": "gasolina",
     "value": 256.45,
     "localityName": "Rogerio Boa esperança"
   },
   {
-    "id": "E_11",
+    "id": "E_20",
     "date": "2026-07-02",
     "type": "alimentação",
     "value": 502,
     "localityName": "Rogerio Boa esperança"
   },
   {
-    "id": "E_12",
+    "id": "E_21",
     "date": "2026-07-03",
     "type": "gasolina",
     "value": 290.35,

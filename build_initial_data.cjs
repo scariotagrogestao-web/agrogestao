@@ -207,13 +207,31 @@ files.forEach(file => {
       const row = dataRows[r];
       if (!row) continue;
       const dIdx = row.findIndex(c => String(c).toLowerCase().trim() === 'data');
-      const descIdx = row.findIndex(c => String(c).toLowerCase().trim() === 'despesa' || String(c).toLowerCase().trim() === 'tipo');
-      const vIdx = row.findIndex(c => String(c).toLowerCase().trim() === 'valor');
-      if (dIdx !== -1 && descIdx !== -1 && vIdx !== -1) {
-        expDataCol = dIdx;
-        expDescCol = descIdx;
-        expValCol = vIdx;
-        break;
+      const descIdx = row.findIndex(c => {
+        const str = String(c).toLowerCase().trim();
+        return str === 'despesa' || str === 'descrição' || str === 'tipo' || str === 'despesas';
+      });
+      let vIdx = row.findIndex(c => String(c).toLowerCase().trim() === 'valor');
+      
+      if (dIdx !== -1 && descIdx !== -1) {
+        if (vIdx === -1) {
+          // If no explicitly named 'valor' column, assume it's one or two columns to the right of 'descIdx'
+          // We can determine by checking the next data row where type is a string and value is a number
+          for (let nr = r + 1; nr < dataRows.length; nr++) {
+            if (typeof dataRows[nr][dIdx] === 'number') {
+               if (typeof dataRows[nr][descIdx + 1] === 'number') vIdx = descIdx + 1;
+               else if (typeof dataRows[nr][descIdx + 2] === 'number') vIdx = descIdx + 2;
+               break;
+            }
+          }
+        }
+        
+        if (vIdx !== -1) {
+          expDataCol = dIdx;
+          expDescCol = descIdx;
+          expValCol = vIdx;
+          break;
+        }
       }
     }
 
