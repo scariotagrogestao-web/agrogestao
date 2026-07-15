@@ -661,8 +661,15 @@ export default function App() {
                 const isDup = newExpenses.some(e => e.date === isoDate && e.type === expType && e.value === expVal);
 
                 if (!isDup) {
-                  const expMach = smNameFromDesc(expDesc);
-                  const expDriver = driverNameFromDesc(expDesc);
+                  let expMach: string | null = null;
+                  const dLow = expDesc.toLowerCase();
+                  if (dLow.includes('jd7250')) expMach = 'JD7250';
+                  else if (dLow.includes('lecão') || dLow.includes('lecao')) expMach = 'LECÃO';
+                  else if (dLow.includes('1620') && dLow.includes('claudinei')) expMach = 'CLAUDINEI 1620';
+                  else if (dLow.includes('constellation') && dLow.includes('chico')) expMach = 'CONSTELLATION CHICO';
+                  else if (dLow.includes('fr 9050') || dLow.includes('fr9050')) expMach = 'RAMOS SILAGEM - FR 9050';
+
+                  const expDriver = getDriverNameForMachine(expDesc);
                   if (expDriver) findOrCreateDriver(expDriver);
 
                   newExpenses.push({
