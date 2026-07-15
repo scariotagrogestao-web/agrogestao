@@ -54,6 +54,7 @@ export default function ExpensesView({
   const [typeFilter, setTypeFilter] = useState('Todos os Tipos');
   const [machineFilter, setMachineFilter] = useState('Todas as Máquinas');
   const [driverFilter, setDriverFilter] = useState('Todos os Motoristas');
+  const [areaFilter, setAreaFilter] = useState('Todas as Áreas');
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -95,6 +96,11 @@ export default function ExpensesView({
     });
     return Array.from(new Set(list)).sort();
   }, [clientsAndVehicles]);
+
+  const areasList = useMemo(() => {
+    const list = expenses.filter(e => e.localityName).map(e => e.localityName!.trim());
+    return Array.from(new Set(list)).sort();
+  }, [expenses]);
 
   // Submit quick entry
   const handleSubmit = (e: React.FormEvent) => {
@@ -153,6 +159,11 @@ export default function ExpensesView({
           cv.responsible && cv.responsible.toLowerCase().includes(driverLower)
         ));
 
+      // Area matches
+      const areaLower = areaFilter.toLowerCase().trim();
+      const matchesArea = areaFilter === 'Todas as Áreas' || 
+        (exp.localityName && exp.localityName.toLowerCase().includes(areaLower));
+
       // Date range matches
       const matchesDate = (!startDate || exp.date >= startDate) && (!endDate || exp.date <= endDate);
 
@@ -162,10 +173,11 @@ export default function ExpensesView({
         (exp.type && exp.type.toLowerCase().includes(search)) ||
         (exp.machineName && exp.machineName.toLowerCase().includes(search)) ||
         (exp.responsibleName && exp.responsibleName.toLowerCase().includes(search)) ||
+        (exp.localityName && exp.localityName.toLowerCase().includes(search)) ||
         (exp.value.toString().includes(search))
       );
 
-      return matchesType && matchesMachine && matchesDriver && matchesDate && matchesSearch;
+      return matchesType && matchesMachine && matchesDriver && matchesArea && matchesDate && matchesSearch;
     });
 
     // Sort list by date
@@ -176,7 +188,7 @@ export default function ExpensesView({
         return a.date.localeCompare(b.date);
       }
     });
-  }, [expenses, typeFilter, machineFilter, driverFilter, sortOrder, startDate, endDate, searchQuery]);
+  }, [expenses, typeFilter, machineFilter, driverFilter, areaFilter, sortOrder, startDate, endDate, searchQuery]);
 
   // Compute stats based on filtered expenses
   const stats = useMemo(() => {
@@ -274,7 +286,7 @@ export default function ExpensesView({
     doc.text("RELATÓRIO DE DESPESAS OPERACIONAIS", 14, 15);
     
     doc.setFontSize(10);
-    const filterText = `Filtros: ${typeFilter} | ${machineFilter} | ${driverFilter}`;
+    const filterText = `Filtros: ${typeFilter} | ${machineFilter} | ${driverFilter} | ${areaFilter}`;
     doc.text(filterText, 14, 22);
     
     const tableData = filteredExpenses.map(exp => {
@@ -541,6 +553,20 @@ export default function ExpensesView({
                 <option>Todos os Motoristas</option>
                 {driversList.map(driver => (
                   <option key={driver} value={driver}>{driver}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Area Filter select */}
+            <div className="relative">
+              <select 
+                value={areaFilter}
+                onChange={(e) => setAreaFilter(e.target.value)}
+                className="pl-3 pr-8 py-1.5 border border-slate-200 bg-white rounded-lg text-xs font-semibold text-slate-700 outline-none focus:border-[#002046]"
+              >
+                <option>Todas as Áreas</option>
+                {areasList.map(area => (
+                  <option key={area} value={area}>{area}</option>
                 ))}
               </select>
             </div>
