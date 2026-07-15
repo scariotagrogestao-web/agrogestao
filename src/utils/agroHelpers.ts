@@ -13,113 +13,145 @@ export function getWeekString(dateStr: string): string {
 
 export const initialMotoristas: Motorista[] = [
   {
-    "id": "M01",
-    "name": "Eduardo",
-    "ratePerHectare": 50,
-    "status": "Ativo"
+    "id": "MOT_1",
+    "name": "Ramos",
+    "phone": "",
+    "cnh": "",
+    "status": "ativo"
   },
   {
-    "id": "M02",
+    "id": "MOT_2",
     "name": "Rodrigo",
-    "ratePerHectare": 50,
-    "status": "Ativo"
+    "phone": "",
+    "cnh": "",
+    "status": "ativo"
   },
   {
-    "id": "M03",
-    "name": "Bigode",
-    "ratePerHectare": 50,
-    "status": "Ativo"
-  },
-  {
-    "id": "M04",
-    "name": "Cowboy",
-    "ratePerHectare": 50,
-    "status": "Ativo"
-  },
-  {
-    "id": "M05",
-    "name": "Leonir",
-    "ratePerHectare": 50,
-    "status": "Ativo"
-  },
-  {
-    "id": "M06",
+    "id": "MOT_3",
     "name": "Chico",
-    "ratePerHectare": 50,
-    "status": "Ativo"
+    "phone": "",
+    "cnh": "",
+    "status": "ativo"
+  },
+  {
+    "id": "MOT_4",
+    "name": "Cowboy",
+    "phone": "",
+    "cnh": "",
+    "status": "ativo"
+  },
+  {
+    "id": "MOT_5",
+    "name": "Leonir",
+    "phone": "",
+    "cnh": "",
+    "status": "ativo"
+  },
+  {
+    "id": "MOT_6",
+    "name": "Bigode",
+    "phone": "",
+    "cnh": "",
+    "status": "ativo"
+  },
+  {
+    "id": "MOT_7",
+    "name": "Lecão",
+    "phone": "",
+    "cnh": "",
+    "status": "ativo"
+  },
+  {
+    "id": "MOT_8",
+    "name": "Claudinei",
+    "phone": "",
+    "cnh": "",
+    "status": "ativo"
   }
 ];
 
 export const initialAreas: Area[] = [
   {
-    "id": "A01",
-    "name": "Rogerio Boa esperança",
+    "id": "A1",
+    "name": "MATRIZ",
     "culture": "Silagem",
     "sizeHectares": 150
   },
   {
-    "id": "A02",
-    "name": "Pedagio lavinia",
-    "culture": "Silagem",
-    "sizeHectares": 150
-  },
-  {
-    "id": "A03",
-    "name": "Fechamento 04  05.06",
-    "culture": "Silagem",
-    "sizeHectares": 150
-  },
-  {
-    "id": "A04",
-    "name": "Fechamen to 05",
-    "culture": "Silagem",
-    "sizeHectares": 150
-  },
-  {
-    "id": "A05",
+    "id": "A2",
     "name": "GUARACI",
     "culture": "Silagem",
     "sizeHectares": 150
   },
   {
-    "id": "A06",
+    "id": "A3",
     "name": "TAIAÇU",
     "culture": "Silagem",
     "sizeHectares": 150
   },
   {
-    "id": "A07",
+    "id": "A4",
     "name": "BURITIZAL",
     "culture": "Silagem",
     "sizeHectares": 150
   },
   {
-    "id": "A08",
+    "id": "A5",
     "name": "STA Aracangua",
     "culture": "Silagem",
     "sizeHectares": 150
   },
   {
-    "id": "A09",
+    "id": "A6",
     "name": "CAMPANELLI CAPIM",
     "culture": "Silagem",
     "sizeHectares": 150
   },
   {
-    "id": "A10",
+    "id": "A7",
     "name": "GASTÃO VIDIGAL",
     "culture": "Silagem",
     "sizeHectares": 150
   },
   {
-    "id": "A11",
+    "id": "A8",
     "name": "FAZENDA MONÇÕES",
     "culture": "Silagem",
     "sizeHectares": 150
   },
   {
-    "id": "A12",
+    "id": "A9",
     "name": "Fazenda sargento sebastinopolis",
+    "culture": "Silagem",
+    "sizeHectares": 150
+  },
+  {
+    "id": "A10",
+    "name": "Acerto",
+    "culture": "Silagem",
+    "sizeHectares": 150
+  },
+  {
+    "id": "A11",
+    "name": "Fechamento 04  05.06",
+    "culture": "Silagem",
+    "sizeHectares": 150
+  },
+  {
+    "id": "A12",
+    "name": "Fechamen to 05",
+    "culture": "Silagem",
+    "sizeHectares": 150
+  },
+  {
+    "id": "A13",
+    "name": "Rogerio Boa esperança",
+    "culture": "Silagem",
+    "sizeHectares": 150
+  },
+  {
+    "id": "A14",
+    "name": "Pedagio lavinia",
     "culture": "Silagem",
     "sizeHectares": 150
   }
@@ -127,129 +159,130 @@ export const initialAreas: Area[] = [
 
 export const initialMaquinas: Maquina[] = [
   {
-    "id": "MA01",
-    "name": "JD7250",
-    "type": "Trator"
-  },
-  {
-    "id": "MA02",
-    "name": "LECÃO",
-    "type": "Trator"
-  },
-  {
-    "id": "MA03",
-    "name": "CLAUDINEI 1620",
-    "type": "Caminhão"
-  },
-  {
-    "id": "MA04",
-    "name": "CAMINHÃO",
-    "type": "Caminhão"
-  },
-  {
-    "id": "MA05",
-    "name": "RAMOS SILAGEM - FR 9050",
-    "type": "Trator"
-  },
-  {
-    "id": "MA06",
-    "name": "CARGO 2425",
-    "type": "Caminhão"
-  },
-  {
-    "id": "MA07",
-    "name": "CARGO 2631",
-    "type": "Caminhão"
-  },
-  {
-    "id": "MA08",
-    "name": "CONSTELLATION",
-    "type": "Caminhão"
-  },
-  {
-    "id": "MA09",
+    "id": "MQ_1",
     "name": "RAMOS SILAGEM - FR 700",
-    "type": "Trator"
+    "type": "trator",
+    "brand": "Desconhecida",
+    "status": "ativo"
   },
   {
-    "id": "MA10",
-    "name": "MB EDUARDO",
-    "type": "Caminhão"
-  },
-  {
-    "id": "MA11",
-    "name": "MULA",
-    "type": "Caminhão"
-  },
-  {
-    "id": "MA12",
-    "name": "CAWBOY",
-    "type": "Trator"
-  },
-  {
-    "id": "MA13",
-    "name": "CONSTELEITION",
-    "type": "Trator"
-  },
-  {
-    "id": "MA14",
-    "name": "CARRETA VW",
-    "type": "Caminhão"
-  },
-  {
-    "id": "MA15",
-    "name": "PÁ CARREGADEIRA",
-    "type": "Trator"
-  },
-  {
-    "id": "MA16",
+    "id": "MQ_2",
     "name": "2220 RODRIGO",
-    "type": "Caminhão"
+    "type": "trator",
+    "brand": "Desconhecida",
+    "status": "ativo"
   },
   {
-    "id": "MA17",
-    "name": "2220 bigode",
-    "type": "Caminhão"
-  },
-  {
-    "id": "MA18",
-    "name": "COWBOY",
-    "type": "Trator"
-  },
-  {
-    "id": "MA19",
-    "name": "2213 LEONIR mula",
-    "type": "Caminhão"
-  },
-  {
-    "id": "MA20",
-    "name": "VOLKS 31 JOTA",
-    "type": "Caminhão"
-  },
-  {
-    "id": "MA21",
+    "id": "MQ_3",
     "name": "CONSTELLATION CHICO",
-    "type": "Caminhão"
+    "type": "caminhao",
+    "brand": "Desconhecida",
+    "status": "ativo"
   },
   {
-    "id": "MA22",
+    "id": "MQ_4",
+    "name": "COWBOY",
+    "type": "trator",
+    "brand": "Desconhecida",
+    "status": "ativo"
+  },
+  {
+    "id": "MQ_5",
+    "name": "2213 LEONIR mula",
+    "type": "trator",
+    "brand": "Desconhecida",
+    "status": "ativo"
+  },
+  {
+    "id": "MQ_6",
+    "name": "descrição",
+    "type": "trator",
+    "brand": "Desconhecida",
+    "status": "ativo"
+  },
+  {
+    "id": "MQ_7",
+    "name": "Coluna3",
+    "type": "trator",
+    "brand": "Desconhecida",
+    "status": "ativo"
+  },
+  {
+    "id": "MQ_8",
+    "name": "Coluna4",
+    "type": "trator",
+    "brand": "Desconhecida",
+    "status": "ativo"
+  },
+  {
+    "id": "MQ_9",
+    "name": "Coluna5",
+    "type": "trator",
+    "brand": "Desconhecida",
+    "status": "ativo"
+  },
+  {
+    "id": "MQ_10",
     "name": "Gago",
-    "type": "Trator"
+    "type": "trator",
+    "brand": "Desconhecida",
+    "status": "ativo"
   },
   {
-    "id": "MA23",
-    "name": "2220",
-    "type": "Trator"
+    "id": "MQ_11",
+    "name": "RAMOS SILAGEM - FR 9050",
+    "type": "trator",
+    "brand": "Desconhecida",
+    "status": "ativo"
   },
   {
-    "id": "MA24",
-    "name": "1318 COWBOY",
-    "type": "Trator"
+    "id": "MQ_12",
+    "name": "CARGO 2425",
+    "type": "caminhao",
+    "brand": "Desconhecida",
+    "status": "ativo"
   },
   {
-    "id": "MA25",
-    "name": "2213",
-    "type": "Trator"
+    "id": "MQ_13",
+    "name": "CARGO 2631",
+    "type": "caminhao",
+    "brand": "Desconhecida",
+    "status": "ativo"
+  },
+  {
+    "id": "MQ_14",
+    "name": "CONSTELLATION",
+    "type": "caminhao",
+    "brand": "Desconhecida",
+    "status": "ativo"
+  },
+  {
+    "id": "MQ_15",
+    "name": "JD7250",
+    "type": "trator",
+    "brand": "Desconhecida",
+    "status": "ativo"
+  },
+  {
+    "id": "MQ_16",
+    "name": "LECÃO",
+    "type": "trator",
+    "brand": "Desconhecida",
+    "status": "ativo"
+  },
+  {
+    "id": "MQ_17",
+    "name": "CLAUDINEI 1620",
+    "type": "caminhao",
+    "brand": "Desconhecida",
+    "status": "ativo"
+  },
+  {
+    "id": "MQ_18",
+    "name": "CAMINHÃO",
+    "type": "caminhao",
+    "brand": "Desconhecida",
+    "status": "ativo"
   }
 ];
 
