@@ -48,6 +48,7 @@ export default function ExpensesView({
   const [formValue, setFormValue] = useState('');
   const [formMachine, setFormMachine] = useState('');
   const [formDriver, setFormDriver] = useState('');
+  const [formArea, setFormArea] = useState('');
   const [formError, setFormError] = useState('');
 
   // Search and Filter inputs
@@ -123,12 +124,14 @@ export default function ExpensesView({
       type: formType,
       value: val,
       machineName: formMachine || undefined,
-      responsibleName: formDriver || undefined
+      responsibleName: formDriver || undefined,
+      localityName: formArea || undefined
     });
 
     setFormValue('');
     setFormMachine('');
     setFormDriver('');
+    setFormArea('');
     alert('Despesa registrada com sucesso!');
   };
 
@@ -429,6 +432,23 @@ export default function ExpensesView({
                 </div>
               </div>
 
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Área / Localidade (Opcional)</label>
+                <div className="relative">
+                  <select 
+                    value={formArea}
+                    onChange={(e) => setFormArea(e.target.value)}
+                    className="w-full border border-slate-200 rounded-lg p-2 text-sm text-slate-700 appearance-none bg-transparent outline-none focus:ring-1 focus:ring-[#002046]"
+                  >
+                    <option value="">Sem área/localidade</option>
+                    {areasList.map(area => (
+                      <option key={area} value={area}>{area}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 pointer-events-none" />
+                </div>
+              </div>
+
               <div className="pt-2">
                 <button 
                   type="submit"
@@ -629,6 +649,7 @@ export default function ExpensesView({
                 <th className="py-3.5 px-4 w-40">Despesa</th>
                 <th className="py-3.5 px-4">Máquina/Veículo</th>
                 <th className="py-3.5 px-4">Motorista/Responsável</th>
+                <th className="py-3.5 px-4">Área/Localidade</th>
                 <th className="py-3.5 px-4 w-40 text-right">Valor (R$)</th>
                 <th className="py-3.5 px-4 w-16 text-center">Ação</th>
               </tr>
@@ -673,6 +694,13 @@ export default function ExpensesView({
                       </span>
                     ) : <span className="text-slate-300 font-normal">-</span>}
                   </td>
+                  <td className="py-3.5 px-4 font-sans">
+                    {exp.localityName ? (
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${getEntityColor(exp.localityName).bg} ${getEntityColor(exp.localityName).text} border ${getEntityColor(exp.localityName).border} shadow-3xs`}>
+                        {exp.localityName}
+                      </span>
+                    ) : <span className="text-slate-300 font-normal">-</span>}
+                  </td>
                   <td className={`py-3.5 px-4 text-right font-mono text-sm text-slate-800 font-bold`}>
                     {exp.value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </td>
@@ -690,7 +718,7 @@ export default function ExpensesView({
               })}
               {filteredExpenses.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-400">
+                  <td colSpan={7} className="py-12 text-center text-slate-400">
                     Nenhuma despesa encontrada para os filtros selecionados.
                   </td>
                 </tr>
@@ -699,7 +727,7 @@ export default function ExpensesView({
             {/* Table total footer */}
             <tfoot className="bg-slate-50 border-t-2 border-[#002046] font-display text-sm font-bold text-[#002046] sticky bottom-0">
               <tr>
-                <td colSpan={4} className="py-4 px-4 font-bold">TOTAL GERAL</td>
+                <td colSpan={5} className="py-4 px-4 font-bold">TOTAL GERAL</td>
                 <td className="py-4 px-4 text-right font-mono font-black text-base text-[#002046]">
                   {filteredTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                 </td>
