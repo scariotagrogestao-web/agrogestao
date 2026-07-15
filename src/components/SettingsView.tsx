@@ -3,6 +3,10 @@ import React, { useState } from 'react';
 import { Download, Upload, Database, Trash2, User, Plus, History } from 'lucide-react';
 import { AuditLog } from '../types';
 import HistoryView from './HistoryView';
+import { db } from '../firebase';
+import { doc, setDoc } from 'firebase/firestore';
+import { initialClientsAndVehicles, initialLocalitySheets, initialExpenses } from '../initialData';
+import { initialMotoristas, initialAreas, initialMaquinas, initialProducoes } from '../utils/agroHelpers';
 
 export interface CustomUser {
   username: string;
@@ -133,16 +137,35 @@ export default function SettingsView({ customUsers, setCustomUsers, handleExport
             </h3>
             <p className="text-xs text-slate-400">Apaga os dados salvos localmente e recarrega os dados padrão.</p>
             <button
-              onClick={() => {
-                if (window.confirm("ATENÇÃO! Isso apagará todos os dados salvos no seu navegador (exceto seu usuário) e recarregará a base principal. Deseja continuar?")) {
-                  const currentUser = localStorage.getItem('agrog_user');
-                  const currentRemember = localStorage.getItem('agrog_remember');
-                  const currentSavedUser = localStorage.getItem('agrog_saved_username');
-                  localStorage.clear();
-                  if (currentUser) localStorage.setItem('agrog_user', currentUser);
-                  if (currentRemember) localStorage.setItem('agrog_remember', currentRemember);
-                  if (currentSavedUser) localStorage.setItem('agrog_saved_username', currentSavedUser);
-                  window.location.reload();
+              onClick={async () => {
+                if (window.confirm("ATENÇÃO! Isso apagará todos os dados salvos no seu navegador (exceto seu usuário) e recarregará a base principal na NUVEM e LOCALMENTE. Deseja continuar?")) {
+                  try {
+                    // Update Firebase
+                    await Promise.all([
+                      setDoc(doc(db, 'agrodata', 'agrog_clients'), { items: initialClientsAndVehicles }),
+                      setDoc(doc(db, 'agrodata', 'agrog_sheets'), { items: initialLocalitySheets }),
+                      setDoc(doc(db, 'agrodata', 'agrog_expenses'), { items: initialExpenses }),
+                      setDoc(doc(db, 'agrodata', 'agrog_motoristas'), { items: initialMotoristas }),
+                      setDoc(doc(db, 'agrodata', 'agrog_areas'), { items: initialAreas }),
+                      setDoc(doc(db, 'agrodata', 'agrog_maquinas'), { items: initialMaquinas }),
+                      setDoc(doc(db, 'agrodata', 'agrog_producoes'), { items: initialProducoes }),
+                      setDoc(doc(db, 'agrodata', 'agrog_audit_logs'), { items: [] })
+                    ]);
+                    
+                    // Update localStorage
+                    const currentUser = localStorage.getItem('agrog_user');
+                    const currentRemember = localStorage.getItem('agrog_remember');
+                    const currentSavedUser = localStorage.getItem('agrog_saved_username');
+                    localStorage.clear();
+                    if (currentUser) localStorage.setItem('agrog_user', currentUser);
+                    if (currentRemember) localStorage.setItem('agrog_remember', currentRemember);
+                    if (currentSavedUser) localStorage.setItem('agrog_saved_username', currentSavedUser);
+                    
+                    window.location.reload();
+                  } catch (err) {
+                    console.error("Erro ao resetar Firebase:", err);
+                    alert("Erro ao resetar banco de dados na nuvem.");
+                  }
                 }
               }}
               className="flex items-center gap-2 px-4 py-2 bg-red-600/20 text-red-500 border border-red-500/30 rounded hover:bg-red-600 hover:text-white transition cursor-pointer"
