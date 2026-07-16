@@ -328,7 +328,7 @@ export default function MachineHoursView({
                   const nextSheet = localitySheets.find(s => s.id !== activeSheetId);
                   if (nextSheet) setActiveSheetId(nextSheet.id);
                 }}
-                className="p-2.5 border border-red-200 hover:bg-red-50 hover:border-red-300 text-red-500 rounded-lg transition-colors cursor-pointer"
+                className="p-2.5 shrink-0 border border-red-200 hover:bg-red-50 hover:border-red-300 text-red-500 rounded-lg transition-colors cursor-pointer"
                 title="Excluir localidade atual"
               >
                 <Trash2 className="w-4 h-4" />
