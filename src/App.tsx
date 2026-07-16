@@ -939,6 +939,8 @@ export default function App() {
             areas={areas}
             maquinas={maquinas}
             motoristas={motoristas}
+            localitySheets={localitySheets}
+            clientsAndVehicles={clientsAndVehicles}
           />
         )}
  

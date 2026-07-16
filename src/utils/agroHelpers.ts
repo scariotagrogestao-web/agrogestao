@@ -1,4 +1,5 @@
 import { Motorista, Area, Maquina, Producao } from '../types/agro';
+import { ClientOrVehicle } from '../types';
 
 export function getWeekString(dateStr: string): string {
   if (!dateStr) return 'Semana Indefinida';
@@ -314,3 +315,57 @@ export const getEntityColor = (name: string) => {
   const index = Math.abs(hash) % colors.length;
   return colors[index];
 };
+
+export const calculateHours = (initial: string, final: string): number => {
+  const init = parseFloat(initial);
+  const fin = parseFloat(final);
+  if (isNaN(init) || isNaN(fin) || fin < init) return 0;
+  return fin - init;
+};
+
+export const getDriverForMachine = (machineName: string, clientsAndVehicles?: ClientOrVehicle[]): string => {
+  if (!machineName) return 'Geral';
+  const normalizedName = machineName.toLowerCase().replace(/\s/g, '');
+  const found = clientsAndVehicles?.find(item => {
+    const itemNorm = item.name.toLowerCase().replace(/\s/g, '');
+    return itemNorm === normalizedName || item.name.toLowerCase().includes(machineName.toLowerCase()) || machineName.toLowerCase().includes(item.name.toLowerCase());
+  });
+  if (found && found.responsible && found.responsible !== '-') {
+    return found.responsible.split(' ')[0];
+  }
+  
+  if (machineName.toLowerCase().includes('rogerio')) return 'Rogério';
+  if (machineName.toLowerCase().includes('marcos')) return 'Marcos';
+  if (machineName.toLowerCase().includes('chico')) return 'Chico';
+  if (machineName.toLowerCase().includes('rodrigo')) return 'Rodrigo';
+  if (machineName.toLowerCase().includes('leonir')) return 'Leonir';
+  if (machineName.toLowerCase().includes('cowboy')) return 'Cowboy';
+  if (machineName.toLowerCase().includes('claudinei')) return 'Marcos';
+  
+  return 'Geral';
+};
+
+export const isTruckVehicle = (machineName: string, clientsAndVehicles?: ClientOrVehicle[]): boolean => {
+  if (!machineName) return false;
+  const normalizedMachineName = machineName.toLowerCase().replace(/\s/g, '');
+  const vehicle = clientsAndVehicles?.find(v => 
+    v.name.toLowerCase().replace(/\s/g, '') === normalizedMachineName || 
+    v.name.toLowerCase().includes(machineName.toLowerCase()) || 
+    machineName.toLowerCase().includes(v.name.toLowerCase())
+  );
+  
+  return vehicle 
+    ? vehicle.type === 'Caminhão' 
+    : (machineName.toLowerCase().includes('caminhão') || 
+       machineName.toLowerCase().includes('1620') || 
+       machineName.toLowerCase().includes('volks') || 
+       machineName.toLowerCase().includes('cargo') || 
+       machineName.toLowerCase().includes('constellation') || 
+       machineName.toLowerCase().includes('mula') || 
+       machineName.toLowerCase().includes('cowboy') || 
+       machineName.toLowerCase().includes('rodrigo') || 
+       machineName.toLowerCase().includes('bigode') || 
+       machineName.toLowerCase().includes('eduardo') ||
+       machineName.toLowerCase().includes('carreta'));
+};
+
