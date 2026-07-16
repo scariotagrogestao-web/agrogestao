@@ -312,7 +312,7 @@ export default function MachineHoursView({
               <select 
                 value={activeSheetId}
                 onChange={(e) => setActiveSheetId(e.target.value)}
-                className="flex-1 border border-slate-200 rounded-lg p-2 bg-slate-50 font-medium text-sm text-slate-700 focus:border-[#002046] focus:ring-1 focus:ring-[#002046] outline-none"
+                className="flex-1 min-w-0 border border-slate-200 rounded-lg p-2 bg-slate-50 font-medium text-sm text-slate-700 focus:border-[#002046] focus:ring-1 focus:ring-[#002046] outline-none text-ellipsis overflow-hidden"
               >
                 {localitySheets.map(s => (
                   <option key={s.id} value={s.id}>{s.name}</option>
@@ -328,7 +328,7 @@ export default function MachineHoursView({
                   const nextSheet = localitySheets.find(s => s.id !== activeSheetId);
                   if (nextSheet) setActiveSheetId(nextSheet.id);
                 }}
-                className="p-2.5 shrink-0 border border-red-200 hover:bg-red-50 hover:border-red-300 text-red-500 rounded-lg transition-colors cursor-pointer"
+                className="w-[38px] h-[38px] flex items-center justify-center shrink-0 border border-red-200 hover:bg-red-50 hover:border-red-300 text-red-500 rounded-lg transition-colors cursor-pointer"
                 title="Excluir localidade atual"
               >
                 <Trash2 className="w-4 h-4" />
