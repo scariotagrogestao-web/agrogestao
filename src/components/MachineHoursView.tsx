@@ -440,6 +440,13 @@ export default function MachineHoursView({
     }
   };
 
+  const formatBRL = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
+  };
+
   const handleExportPDF = () => {
     const headers = ['Localidade / Fazenda', 'Máquina / Veículo', 'Tarifa (R$/h)', 'Total Horas', 'Custo Total (R$)'];
     const rows: (string | number)[][] = [];
