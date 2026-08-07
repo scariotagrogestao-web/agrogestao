@@ -296,7 +296,7 @@ export default function RegistriesView({
     <div className="flex flex-col gap-6 fade-in">
       
       {/* Page Header */}
-      <div className="flex justify-between items-center flex-wrap gap-4 shrink-0">
+      <div className="flex justify-between items-center flex-wrap gap-4 shrink-0 relative z-30">
         <div>
           <h2 className="text-xl font-bold text-slate-800">Painel de Cadastros Gerais</h2>
           <p className="text-xs text-slate-500 mt-1">Gerencie a frota de maquinários, fazendas de atuação e equipes de operadores.</p>

@@ -603,7 +603,7 @@ export default function MachineHoursView({
   return (
     <div className="flex flex-col gap-6 fade-in">
       {/* Context Header */}
-      <div className="flex flex-col sm:flex-row justify-between sm:items-end gap-4 shrink-0">
+      <div className="flex flex-col sm:flex-row justify-between sm:items-end gap-4 shrink-0 relative z-30">
         <div>
           <h1 className="font-display text-3xl font-bold text-[#002046] mb-2">Controle de Horas-Máquina</h1>
           <p className="text-sm text-slate-500">

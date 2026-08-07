@@ -409,7 +409,7 @@ export default function PagamentoReportView({
   return (
     <div className="flex flex-col gap-6 fade-in">
       {/* Page Title & Tabs */}
-      <div className="flex flex-col sm:flex-row justify-between sm:items-end gap-4 shrink-0 bg-white/50 p-4 rounded-2xl border border-white backdrop-blur shadow-sm">
+      <div className="flex flex-col sm:flex-row justify-between sm:items-end gap-4 shrink-0 bg-white/50 p-4 rounded-2xl border border-white backdrop-blur shadow-sm relative z-30">
         <div>
           <h2 className="text-2xl font-black text-slate-800 bg-clip-text text-transparent bg-gradient-to-r from-[#002046] to-emerald-600">Central de Relatórios e Exportação</h2>
           <p className="text-sm text-slate-500 mt-1 font-medium">Consolidação de dados para análises, fechamentos e exportação (.PDF / .XLSX / .CSV).</p>

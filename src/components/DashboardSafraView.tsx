@@ -103,7 +103,7 @@ export default function DashboardSafraView({
   return (
     <div className="flex flex-col gap-6 fade-in">
       {/* Page Title & Export Options */}
-      <div className="flex flex-col sm:flex-row justify-between sm:items-end gap-4 shrink-0 bg-white/50 p-4 rounded-2xl border border-white backdrop-blur shadow-sm">
+      <div className="flex flex-col sm:flex-row justify-between sm:items-end gap-4 shrink-0 bg-white/50 p-4 rounded-2xl border border-white backdrop-blur shadow-sm relative z-30">
         <div>
           <h2 className="text-2xl font-black text-slate-800 bg-clip-text text-transparent bg-gradient-to-r from-[#002046] to-emerald-600">Métricas de Safra e Produtividade</h2>
           <p className="text-sm text-slate-500 mt-1 font-medium">Consolidação em tempo real da colheita e rendimento da safra atual.</p>

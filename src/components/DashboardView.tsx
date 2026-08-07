@@ -445,7 +445,7 @@ export default function DashboardView({
     <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       
       {/* Section Header */}
-      <div className="flex flex-col sm:flex-row justify-between sm:items-end gap-4 shrink-0 bg-white/50 p-4 rounded-2xl border border-white backdrop-blur shadow-sm">
+      <div className="flex flex-col sm:flex-row justify-between sm:items-end gap-4 shrink-0 bg-white/50 p-4 rounded-2xl border border-white backdrop-blur shadow-sm relative z-30">
         <div>
           <div className="flex items-center gap-3">
             <h3 className="font-display text-2xl font-black text-slate-800 bg-clip-text text-transparent bg-gradient-to-r from-[#002046] to-emerald-600">
@@ -470,7 +470,7 @@ export default function DashboardView({
       </div>
 
       {/* Dashboard Global Filters Panel */}
-      <div className="bg-white/80 backdrop-blur-sm border border-slate-200/60 rounded-2xl p-5 shadow-sm flex flex-col gap-4 shrink-0">
+      <div className="bg-white/80 backdrop-blur-sm border border-slate-200/60 rounded-2xl p-5 shadow-sm flex flex-col gap-4 shrink-0 relative z-10">
         {dateError && (
           <div className="bg-red-50 border border-red-200 text-red-800 rounded-lg p-2.5 text-xs font-semibold flex items-center gap-1.5">
             <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
