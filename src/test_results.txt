@@ -1,0 +1,14 @@
+=== INICIANDO EXECUÇÃO DOS TESTES DE VALIDAÇÃO DAS REGRAS ===
+[PASS] TESTE 1 - Horas permanência em 100h após despesa: expected 100, got 100
+[PASS] TESTE 1 - Despesas acumuladas R$ 1.000: expected 1000, got 1000
+[PASS] TESTE 2 - Acúmulo de horas 100h + 50h: expected 150, got 150
+[PASS] TESTE 3 - Soma de despesas R$ 1.750: expected 1750, got 1750
+[PASS] TESTE 4 - Custo de caminhão R$ 3.000: expected 3000, got 3000
+[PASS] TESTE 4 - Receita de caminhão R$ 0: expected 0, got 0
+[PASS] TESTE 5 - Custo de motorista (10ha * R$60): expected 600, got 600
+[PASS] TESTE 6 - Receita de Silagem R$ 20.000: expected 20000, got 20000
+[PASS] TESTE 6 - Resultado Líquido R$ 8.000: expected 8000, got 8000
+[PASS] TESTE 7 - Silagem sem custos R$ 20.000: expected 20000, got 20000
+[PASS] TESTE 8 - Despesa sem produção -R$ 5.000: expected -5000, got -5000
+
+=== FINALIZADO: 11 PASSOU, 0 FALHOU ===

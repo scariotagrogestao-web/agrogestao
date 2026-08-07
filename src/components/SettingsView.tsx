@@ -1,0 +1,335 @@
+// src/components/SettingsView.tsx
+import React, { useState } from 'react';
+import { Download, Upload, Database, Trash2, User, Plus, History } from 'lucide-react';
+import { AuditLog } from '../types';
+import HistoryView from './HistoryView';
+import { db } from '../firebase';
+import { doc, setDoc } from 'firebase/firestore';
+import { initialClientsAndVehicles, initialLocalitySheets, initialExpenses } from '../initialData';
+import { initialMotoristas, initialAreas, initialMaquinas, initialProducoes } from '../utils/agroHelpers';
+
+export interface CustomUser {
+  username: string;
+  password: string;
+  role?: 'admin' | 'user';
+  canDelete?: boolean;
+}
+
+interface SettingsViewProps {
+  customUsers: CustomUser[];
+  setCustomUsers: React.Dispatch<React.SetStateAction<CustomUser[]>>;
+  handleExportData: () => void;
+  handleImportData: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  isAdmin: boolean;
+  canDelete?: boolean;
+  auditLogs?: AuditLog[];
+  currentUser?: string;
+}
+
+export default function SettingsView({ customUsers, setCustomUsers, handleExportData, handleImportData, isAdmin, canDelete = true, auditLogs = [], currentUser = 'admin' }: SettingsViewProps) {
+  const [activeTab, setActiveTab] = useState<'geral' | 'auditoria'>('geral');
+  const [newUsername, setNewUsername] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [newUserRole, setNewUserRole] = useState<'admin' | 'user'>('admin');
+  const [newUserCanDelete, setNewUserCanDelete] = useState<boolean>(false);
+  const [userError, setUserError] = useState('');
+
+  const isSuperAdmin = currentUser?.toLowerCase().trim() === 'admin';
+
+  const handleCreateUser = (e: React.FormEvent) => {
+    e.preventDefault();
+    setUserError('');
+    const uClean = newUsername.trim().toLowerCase();
+    const pClean = newPassword.trim();
+    if (!uClean || !pClean) {
+      setUserError('Preencha todos os campos.');
+      return;
+    }
+    if (customUsers.some(u => u.username.toLowerCase() === uClean)) {
+      setUserError('Este usuário já existe.');
+      return;
+    }
+    setCustomUsers(prev => [...prev, { username: uClean, password: pClean, role: newUserRole, canDelete: newUserCanDelete }]);
+    setNewUsername('');
+    setNewPassword('');
+    setNewUserRole('admin');
+    setNewUserCanDelete(false);
+    alert(`Usuário "${uClean}" (${newUserRole === 'admin' ? 'Administrador' : 'Usuário'}, Exclusão: ${newUserCanDelete ? 'Permitida' : 'Bloqueada'}) criado com sucesso!`);
+  };
+
+  const handleDeleteUser = (usernameToDelete: string) => {
+    if (usernameToDelete.toLowerCase() === 'admin') {
+      alert(`A conta do Super Administrador (Admin) é a conta principal do sistema e não pode ser excluída.`);
+      return;
+    }
+    if (!isSuperAdmin) {
+      alert('Acesso Negado (403 Forbidden): Somente o Super Administrador (Admin) possui permissão para remover usuários.');
+      return;
+    }
+    if (confirm(`Deseja remover o acesso do usuário "${usernameToDelete}"?`)) {
+      setCustomUsers(prev => prev.filter(u => u.username.toLowerCase() !== usernameToDelete.toLowerCase()));
+    }
+  };
+
+  const handleToggleRole = (usernameToToggle: string, currentRole: string | undefined) => {
+    if (usernameToToggle.toLowerCase() === 'admin') {
+      alert(`A conta do Super Administrador (Admin) é a conta principal do sistema e seu perfil não pode ser alterado.`);
+      return;
+    }
+    if (!isSuperAdmin) {
+      alert('Acesso Negado (403 Forbidden): Somente o Super Administrador (Admin) possui permissão para alterar o perfil de usuários.');
+      return;
+    }
+    const newRole = currentRole === 'admin' ? 'user' : 'admin';
+    if (confirm(`Deseja alterar a permissão de "${usernameToToggle}" para ${newRole === 'admin' ? 'Administrador' : 'Usuário Normal'}?`)) {
+      setCustomUsers(prev => prev.map(u => u.username.toLowerCase() === usernameToToggle.toLowerCase() ? { ...u, role: newRole } : u));
+    }
+  };
+
+  const handleToggleCanDelete = (usernameToToggle: string, currentCanDelete: boolean | undefined) => {
+    if (usernameToToggle.toLowerCase() === 'admin') {
+      alert(`A conta do Super Administrador (Admin) possui exclusão sempre permitida.`);
+      return;
+    }
+    if (!isSuperAdmin) {
+      alert('Acesso Negado (403 Forbidden): Somente o Super Administrador (Admin) possui permissão para gerenciar a permissão de exclusão.');
+      return;
+    }
+    const newCanDelete = currentCanDelete === false ? true : false;
+    if (confirm(`Deseja alterar a permissão de exclusão de "${usernameToToggle}" para ${newCanDelete ? 'Permitir Exclusão' : 'Bloquear Exclusão (Sem Exclusão)'}?`)) {
+      setCustomUsers(prev => prev.map(u => u.username.toLowerCase() === usernameToToggle.toLowerCase() ? { ...u, canDelete: newCanDelete } : u));
+    }
+  };
+
+  const handleChangePassword = (usernameToChange: string) => {
+    const newPass = prompt(`Digite a nova senha para o usuário "${usernameToChange}":`);
+    if (newPass !== null) {
+      if (newPass.trim() === '') {
+        alert('A senha não pode ser vazia.');
+        return;
+      }
+      setCustomUsers(prev => prev.map(u => u.username.toLowerCase() === usernameToChange.toLowerCase() ? { ...u, password: newPass.trim() } : u));
+      alert(`Senha do usuário "${usernameToChange}" alterada com sucesso!`);
+    }
+  };
+
+  return (
+    <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-lg space-y-6 text-slate-100">
+      
+      <div className="flex gap-4 border-b border-slate-800 pb-2">
+        <button 
+          onClick={() => setActiveTab('geral')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-t-lg font-bold text-sm transition-colors ${activeTab === 'geral' ? 'bg-slate-800 text-emerald-400 border-b-2 border-emerald-500' : 'text-slate-500 hover:text-slate-300'}`}
+        >
+          <Database className="w-4 h-4" /> Configurações Gerais
+        </button>
+        <button 
+          onClick={() => setActiveTab('auditoria')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-t-lg font-bold text-sm transition-colors ${activeTab === 'auditoria' ? 'bg-slate-800 text-emerald-400 border-b-2 border-emerald-500' : 'text-slate-500 hover:text-slate-300'}`}
+        >
+          <History className="w-4 h-4" /> Histórico (Auditoria)
+        </button>
+      </div>
+
+      {activeTab === 'geral' ? (
+        <div className="space-y-8">
+          {/* Backup & Export Section */}
+          <section className="space-y-4">
+            <h2 className="text-lg font-bold flex items-center gap-2 text-emerald-400">
+              <Database className="w-5 h-5" /> Configurações do Sistema
+            </h2>
+            <p className="text-xs text-slate-400">Gerencie a persistência dos dados e backups do AgroGestão.</p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-slate-700">
+          {/* Export */}
+          <div className="border border-slate-700 rounded-lg p-4 space-y-3">
+            <h3 className="text-xs font-bold uppercase text-slate-500">📥 Backup & Exportação</h3>
+            <p className="text-xs text-slate-400">Exportar todos os dados locais em JSON.</p>
+            <button
+              onClick={handleExportData}
+              className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition"
+            >
+              <Download className="w-4 h-4" /> Exportar Dados
+            </button>
+          </div>
+          {/* Import */}
+          <div className="border border-slate-700 rounded-lg p-4 space-y-3">
+            <h3 className="text-xs font-bold uppercase text-slate-500">📤 Importação de Backup</h3>
+            <p className="text-xs text-slate-400">Restaurar informações a partir de um arquivo JSON.</p>
+            <label className="flex items-center gap-2 px-4 py-2 bg-slate-800 text-slate-200 rounded cursor-pointer hover:bg-slate-700 transition">
+              <Upload className="w-4 h-4" /> Selecionar Backup JSON
+              <input type="file" accept=".json" onChange={handleImportData} className="hidden" />
+            </label>
+          </div>
+          {/* Reset */}
+          <div className="border border-red-900/30 bg-red-950/10 rounded-lg p-4 space-y-3">
+            <h3 className="text-xs font-bold uppercase text-red-500 flex items-center gap-2">
+              <Trash2 className="w-4 h-4" /> Resetar Banco de Dados
+            </h3>
+            <p className="text-xs text-slate-400">Apaga os dados salvos localmente e recarrega os dados padrão.</p>
+            <button
+              onClick={async () => {
+                if (window.confirm("ATENÇÃO! Isso apagará todos os dados salvos no seu navegador (exceto seu usuário) e recarregará a base principal na NUVEM e LOCALMENTE. Deseja continuar?")) {
+                  try {
+                    // Update Firebase
+                    await Promise.all([
+                      setDoc(doc(db, 'agrodata', 'agrog_clients'), { items: initialClientsAndVehicles }),
+                      setDoc(doc(db, 'agrodata', 'agrog_sheets'), { items: initialLocalitySheets }),
+                      setDoc(doc(db, 'agrodata', 'agrog_expenses'), { items: initialExpenses }),
+                      setDoc(doc(db, 'agrodata', 'agrog_motoristas'), { items: initialMotoristas }),
+                      setDoc(doc(db, 'agrodata', 'agrog_areas'), { items: initialAreas }),
+                      setDoc(doc(db, 'agrodata', 'agrog_maquinas'), { items: initialMaquinas }),
+                      setDoc(doc(db, 'agrodata', 'agrog_producoes'), { items: initialProducoes }),
+                      setDoc(doc(db, 'agrodata', 'agrog_audit_logs'), { items: [] })
+                    ]);
+                    
+                    // Update localStorage
+                    const currentUser = localStorage.getItem('agrog_user');
+                    const currentRemember = localStorage.getItem('agrog_remember');
+                    const currentSavedUser = localStorage.getItem('agrog_saved_username');
+                    localStorage.clear();
+                    if (currentUser) localStorage.setItem('agrog_user', currentUser);
+                    if (currentRemember) localStorage.setItem('agrog_remember', currentRemember);
+                    if (currentSavedUser) localStorage.setItem('agrog_saved_username', currentSavedUser);
+                    
+                    window.location.reload();
+                  } catch (err) {
+                    console.error("Erro ao resetar Firebase:", err);
+                    alert("Erro ao resetar banco de dados na nuvem.");
+                  }
+                }
+              }}
+              className="flex items-center gap-2 px-4 py-2 bg-red-600/20 text-red-500 border border-red-500/30 rounded hover:bg-red-600 hover:text-white transition cursor-pointer"
+            >
+              <Trash2 className="w-4 h-4" /> Limpar Tudo
+            </button>
+          </div>
+        </div>
+      </section>
+
+{isAdmin && (
+        <section className="space-y-4">
+          <h3 className="text-sm font-bold uppercase text-slate-500">👥 Gerenciamento de Usuários</h3>
+          <p className="text-xs text-slate-400">Somente o administrador pode criar ou remover usuários, bem como alterar senhas e permissões.</p>
+          {/* List existing users */}
+          <ul className="space-y-2">
+            {customUsers.map(user => {
+              const isTargetSuperAdmin = user.username.toLowerCase() === 'admin';
+              const isUserAdmin = isTargetSuperAdmin || user.role === 'admin';
+              const canUserDelete = isTargetSuperAdmin || (user.role === 'admin' && user.canDelete !== false);
+              
+              return (
+                <li key={user.username} className="flex flex-col md:flex-row md:items-center justify-between bg-slate-800 rounded px-3 py-2 gap-3">
+                  <span className="flex items-center gap-2 flex-wrap">
+                    <User className="w-4 h-4 text-emerald-500" />
+                    <span className="text-sm capitalize font-bold">{user.username}</span>
+                    <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full tracking-wider ${isTargetSuperAdmin ? 'bg-amber-500/20 text-amber-300' : isUserAdmin ? (canUserDelete ? 'bg-indigo-500/20 text-indigo-300' : 'bg-sky-500/20 text-sky-300') : 'bg-slate-700 text-slate-300'}`}>
+                      {isTargetSuperAdmin ? 'SuperAdmin (Master)' : isUserAdmin ? (canUserDelete ? 'Admin (Com Exclusão)' : 'Admin (Sem Exclusão)') : 'Usuário Normal'}
+                    </span>
+                  </span>
+                  <div className="flex items-center gap-3 self-end md:self-auto flex-wrap">
+                    <span className="text-xs text-slate-400 font-mono bg-slate-900 px-2 py-1 rounded select-all border border-slate-700">
+                      {user.password}
+                    </span>
+                    <button
+                      onClick={() => handleChangePassword(user.username)}
+                      className="text-xs text-slate-400 hover:text-emerald-400 underline decoration-slate-600 underline-offset-2 transition-colors cursor-pointer"
+                    >
+                      Alterar Senha
+                    </button>
+                    {!isTargetSuperAdmin && isSuperAdmin && (
+                      <button
+                        onClick={() => handleToggleRole(user.username, user.role)}
+                        className="text-xs text-slate-400 hover:text-emerald-400 underline decoration-slate-600 underline-offset-2 transition-colors cursor-pointer"
+                      >
+                        Mudar Permissão ({user.role === 'admin' ? 'Tornar Usuário' : 'Tornar Admin'})
+                      </button>
+                    )}
+                    {!isTargetSuperAdmin && isSuperAdmin && (
+                      <button
+                        onClick={() => handleToggleCanDelete(user.username, user.canDelete)}
+                        className="text-xs text-amber-400 hover:text-amber-300 underline decoration-amber-600/50 underline-offset-2 transition-colors cursor-pointer"
+                      >
+                        {user.canDelete === false ? 'Permitir Exclusão' : 'Bloquear Exclusão'}
+                      </button>
+                    )}
+                    {!isTargetSuperAdmin && isSuperAdmin && (
+                      <button
+                        onClick={() => handleDeleteUser(user.username)}
+                        className="flex items-center gap-1 text-red-500 hover:text-red-400 ml-2 cursor-pointer"
+                        title="Remover usuário"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+          {/* Form to add new user */}
+          <form onSubmit={handleCreateUser} className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+            <div className="col-span-1">
+              <label className="block text-xs text-slate-400 mb-1 font-bold">Nome de usuário</label>
+              <input
+                type="text"
+                value={newUsername}
+                onChange={e => setNewUsername(e.target.value)}
+                placeholder="ex: novoUser"
+                className="w-full p-2 bg-slate-900 border border-slate-700 rounded focus:outline-none focus:border-emerald-600 text-sm font-medium"
+                required
+              />
+            </div>
+            <div className="col-span-1">
+              <label className="block text-xs text-slate-400 mb-1 font-bold">Senha</label>
+              <input
+                type="password"
+                value={newPassword}
+                onChange={e => setNewPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full p-2 bg-slate-900 border border-slate-700 rounded focus:outline-none focus:border-emerald-600 text-sm font-medium"
+                required
+              />
+            </div>
+            <div className="col-span-1">
+              <label className="block text-xs text-slate-400 mb-1 font-bold">Permissão de Perfil</label>
+              <select
+                value={newUserRole}
+                onChange={e => setNewUserRole(e.target.value as 'admin' | 'user')}
+                className="w-full p-2 bg-slate-900 border border-slate-700 rounded focus:outline-none focus:border-emerald-600 text-sm font-medium"
+              >
+                <option value="admin">Administrador</option>
+                <option value="user">Usuário Normal</option>
+              </select>
+            </div>
+            <div className="col-span-1">
+              <label className="block text-xs text-slate-400 mb-1 font-bold">Permite Exclusão?</label>
+              <select
+                value={newUserCanDelete ? 'sim' : 'nao'}
+                onChange={e => setNewUserCanDelete(e.target.value === 'sim')}
+                className="w-full p-2 bg-slate-900 border border-slate-700 rounded focus:outline-none focus:border-emerald-600 text-sm font-medium"
+              >
+                <option value="nao">NÃO (Sem Exclusão)</option>
+                <option value="sim">SIM (Com Exclusão)</option>
+              </select>
+            </div>
+            <div className="col-span-1">
+              <button
+                type="submit"
+                className="w-full flex items-center justify-center gap-1 px-4 py-2 bg-emerald-600 font-bold text-white rounded hover:bg-emerald-700 transition cursor-pointer"
+              >
+                <Plus className="w-4 h-4" /> Criar Usuário
+              </button>
+            </div>
+            {userError && (
+              <p className="col-span-1 md:col-span-5 text-xs font-bold text-red-400 mt-1">{userError}</p>
+            )}
+          </form>
+        </section>
+      )}
+        </div>
+      ) : (
+        <HistoryView logs={auditLogs} />
+      )}
+    </div>
+  );
+}
