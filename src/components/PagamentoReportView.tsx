@@ -4,6 +4,7 @@ import { Producao, Area, Maquina, Motorista } from '../types/agro';
 import { LocalitySheet, ClientOrVehicle } from '../types';
 import { getEntityColor, getDriverForMachine, isTruckVehicle, calculateHours } from '../utils/agroHelpers';
 import { exportToCSV, exportToXLSX, exportToPDF } from '../utils/exportHelpers';
+import ExportGenerateButton from './ExportGenerateButton';
 
 interface PagamentoReportViewProps {
   producoes: Producao[];
@@ -441,32 +442,11 @@ export default function PagamentoReportView({
 
       <div className="flex flex-wrap gap-2 justify-end items-center">
         <span className="text-[10px] uppercase font-bold text-slate-400 mr-2">Exportar Relatório ({activeTab}):</span>
-        <button
-          onClick={() => handleExportPDF(activeTab)}
-          className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold text-xs uppercase tracking-wider px-3.5 py-2 rounded-xl shadow-md hover:shadow-lg transition-all flex items-center gap-1.5 cursor-pointer border-none"
-          title="Exportar documento em formato PDF"
-        >
-          <FileText className="w-4 h-4" />
-          <span>Gerar .PDF</span>
-        </button>
-
-        <button
-          onClick={() => handleExportXLSX(activeTab)}
-          className="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-bold text-xs uppercase tracking-wider px-3.5 py-2 rounded-xl shadow-md hover:shadow-lg transition-all flex items-center gap-1.5 cursor-pointer border-none"
-          title="Exportar planilha nativa Excel .XLSX"
-        >
-          <FileSpreadsheet className="w-4 h-4" />
-          <span>Exportar .XLSX</span>
-        </button>
-
-        <button
-          onClick={() => handleExportCSV(activeTab)}
-          className="bg-gradient-to-r from-slate-700 to-slate-800 hover:from-slate-800 hover:to-slate-900 text-white font-bold text-xs uppercase tracking-wider px-3.5 py-2 rounded-xl shadow-md hover:shadow-lg transition-all flex items-center gap-1.5 cursor-pointer border-none"
-          title="Exportar dados estruturados em CSV"
-        >
-          <Download className="w-4 h-4" />
-          <span>Exportar .CSV</span>
-        </button>
+        <ExportGenerateButton 
+          onExportPDF={() => handleExportPDF(activeTab)}
+          onExportXLSX={() => handleExportXLSX(activeTab)}
+          onExportCSV={() => handleExportCSV(activeTab)}
+        />
       </div>
 
       {/* Global Dynamic Filters Panel (Aplicado a TODAS as sub-abas: Produção, Máquinas e Caminhões) */}

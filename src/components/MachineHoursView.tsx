@@ -23,6 +23,7 @@ import {
 import { LocalitySheet, MachineConfig, HourlyReading, ClientOrVehicle } from '../types';
 import { isTruckVehicle } from '../utils/agroHelpers';
 import { exportToCSV, exportToXLSX, exportToPDF } from '../utils/exportHelpers';
+import ExportGenerateButton from './ExportGenerateButton';
 
 interface MachineHoursViewProps {
   localitySheets: LocalitySheet[];
@@ -34,6 +35,8 @@ interface MachineHoursViewProps {
   onDeleteLocality: (sheetId: string) => void;
   onAddDate: (sheetId: string, dateStr: string) => void;
   onExport: () => void;
+  onHasUnsavedChangesChange?: (isDirty: boolean) => void;
+  registerSaveHandler?: (handler: (() => boolean) | null) => void;
 }
 
 export default function MachineHoursView({ 
@@ -265,29 +268,111 @@ export default function MachineHoursView({
     };
   }, [activeSheet, filteredMachines, filteredDates]);
 
+  // Unsaved manual hour changes tracking state
+  const [pendingReadings, setPendingReadings] = useState<Record<string, {
+    targetSheetId: string;
+    realMachineId: string;
+    date: string;
+    field: 'initial' | 'final';
+    value: string;
+    originalReading: HourlyReading;
+  }>>({});
+  const [isSavingPending, setIsSavingPending] = useState(false);
+  const [saveStatusMessage, setSaveStatusMessage] = useState('');
+
+  const hasUnsavedChanges = useMemo(() => {
+    return Object.keys(pendingReadings).length > 0;
+  }, [pendingReadings]);
+
+  // Sync dirty state with parent component (App.tsx)
+  useEffect(() => {
+    onHasUnsavedChangesChange?.(hasUnsavedChanges);
+  }, [hasUnsavedChanges, onHasUnsavedChangesChange]);
+
   const handleInputChange = (machineId: string, date: string, field: 'initial' | 'final', value: string) => {
     setEditingCell({ machineId, date, field, value });
+    
+    const machine = activeSheet.machines.find(m => m.id === machineId);
+    const targetSheetId = activeSheetId === 'all' ? ((machine as any)?.sheetId || localitySheets[0]?.id) : activeSheetId;
+    const realMachineId = machineId.includes('___') ? machineId.split('___')[1] : machineId;
+    const currentReading = machine?.readings[date] || { initial: '', final: '' };
+
+    const key = `${targetSheetId}___${realMachineId}___${date}`;
+    const cleanVal = value.replace(',', '.').trim();
+
+    setPendingReadings(prev => ({
+      ...prev,
+      [key]: {
+        targetSheetId,
+        realMachineId,
+        date,
+        field,
+        value: cleanVal,
+        originalReading: currentReading
+      }
+    }));
   };
 
   const handleInputCommit = (machineId: string, date: string, field: 'initial' | 'final', value: string, originalValue: string) => {
     setEditingCell(null);
-    const cleanVal = value.replace(',', '.').trim();
-    const cleanOrig = originalValue.replace(',', '.').trim();
-    if (cleanVal === cleanOrig) return;
+  };
 
-    if (confirm(`Deseja realmente gravar a alteração de horímetro de "${cleanOrig || '-'}" para "${cleanVal || '-'}"?`)) {
-      const machine = activeSheet.machines.find(m => m.id === machineId);
-      const targetSheetId = activeSheetId === 'all' ? ((machine as any)?.sheetId || localitySheets[0]?.id) : activeSheetId;
-      const realMachineId = machineId.includes('___') ? machineId.split('___')[1] : machineId;
+  const handleSaveAllPending = (): boolean => {
+    if (Object.keys(pendingReadings).length === 0) return true;
+    
+    setIsSavingPending(true);
+    try {
+      // Validate pending readings
+      let validationError = '';
+      Object.values(pendingReadings).forEach(item => {
+        const valNum = parseFloat(item.value);
+        if (item.value !== '' && (isNaN(valNum) || valNum < 0)) {
+          validationError = `Horímetro inválido para a data ${item.date}. Digite apenas números positivos.`;
+        }
+      });
 
-      const currentReading = machine?.readings[date] || { initial: '', final: '' };
-      const updatedReading = {
-        ...currentReading,
-        [field]: cleanVal
-      };
-      onUpdateReadings(targetSheetId, realMachineId, date, updatedReading);
+      if (validationError) {
+        alert(validationError);
+        setIsSavingPending(false);
+        return false;
+      }
+
+      // Group edits by machine & date
+      const mapToCommit: Record<string, HourlyReading> = {};
+      Object.values(pendingReadings).forEach(item => {
+        const key = `${item.targetSheetId}___${item.realMachineId}___${item.date}`;
+        if (!mapToCommit[key]) {
+          mapToCommit[key] = { ...item.originalReading };
+        }
+        mapToCommit[key][item.field] = item.value;
+      });
+
+      // Execute onUpdateReadings for each updated entry
+      Object.entries(mapToCommit).forEach(([key, updatedReading]) => {
+        const [sheetId, machineId, date] = key.split('___');
+        onUpdateReadings(sheetId, machineId, date, updatedReading);
+      });
+
+      setPendingReadings({});
+      setSaveStatusMessage('Apontamento salvo com sucesso.');
+      setTimeout(() => setSaveStatusMessage(''), 4000);
+      alert('Apontamento salvo com sucesso.');
+      return true;
+    } catch (err) {
+      alert('Não foi possível salvar o apontamento. Verifique os dados e tente novamente.');
+      return false;
+    } finally {
+      setIsSavingPending(false);
     }
   };
+
+  // Register save handler for parent navigation guard
+  useEffect(() => {
+    registerSaveHandler?.(handleSaveAllPending);
+    return () => {
+      registerSaveHandler?.(null);
+    };
+  }, [registerSaveHandler, pendingReadings]);
 
   const handleAddNewMachineSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -542,32 +627,11 @@ export default function MachineHoursView({
             <span>+ Lançamento Rápido</span>
           </button>
 
-          <button 
-            onClick={handleExportPDF}
-            className="px-3 py-2 border border-red-200 bg-red-50 text-red-700 font-bold text-xs tracking-wider uppercase rounded-xl hover:bg-red-100 transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
-            title="Exportar relatório em PDF"
-          >
-            <FileText className="w-4 h-4 text-red-600" />
-            <span>.PDF</span>
-          </button>
-
-          <button 
-            onClick={handleExportXLSX}
-            className="px-3 py-2 border border-emerald-200 bg-emerald-50 text-emerald-700 font-bold text-xs tracking-wider uppercase rounded-xl hover:bg-emerald-100 transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
-            title="Exportar planilha nativa Excel .XLSX"
-          >
-            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
-            <span>.XLSX</span>
-          </button>
-
-          <button 
-            onClick={handleExportCSVInternal}
-            className="px-3 py-2 border border-slate-300 bg-white text-slate-700 font-bold text-xs tracking-wider uppercase rounded-xl hover:bg-slate-50 transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
-            title="Exportar dados estruturados em CSV"
-          >
-            <Download className="w-4 h-4 text-slate-500" />
-            <span>.CSV</span>
-          </button>
+          <ExportGenerateButton 
+            onExportPDF={handleExportPDF}
+            onExportXLSX={handleExportXLSX}
+            onExportCSV={handleExportCSVInternal}
+          />
           <button 
             onClick={() => setIsAddDateOpen(true)}
             className="px-4 py-2 border border-slate-300 text-slate-700 bg-white font-semibold text-xs tracking-wider uppercase rounded-lg hover:bg-slate-50 transition-colors flex items-center gap-2 cursor-pointer shadow-xs"
@@ -758,6 +822,27 @@ export default function MachineHoursView({
             <span>Apontamento de Horímetro - {activeSheet.name}</span>
           </h2>
           <div className="flex items-center gap-3">
+            {hasUnsavedChanges && (
+              <button 
+                type="button"
+                onClick={handleSaveAllPending}
+                disabled={isSavingPending}
+                className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-sm transition-all flex items-center gap-1.5 cursor-pointer animate-pulse border-none"
+              >
+                <span>{isSavingPending ? 'SALVANDO...' : `SALVAR APONTAMENTOS (${Object.keys(pendingReadings).length})`}</span>
+              </button>
+            )}
+
+            {!hasUnsavedChanges && (
+              <button 
+                type="button"
+                onClick={handleSaveAllPending}
+                className="px-3 py-1.5 border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs uppercase tracking-wider rounded-lg transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+              >
+                <span>SALVAR</span>
+              </button>
+            )}
+
             <button 
               onClick={() => setIsAddMachineOpen(true)}
               className="text-xs font-bold text-[#002046] hover:bg-slate-200/50 px-2.5 py-1.5 rounded-lg border border-slate-200 flex items-center gap-1 transition-all cursor-pointer bg-white"

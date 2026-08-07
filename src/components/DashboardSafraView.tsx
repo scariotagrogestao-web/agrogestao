@@ -3,6 +3,7 @@ import { Landmark, Scale, Crop, TrendingUp, DollarSign, FileText, FileSpreadshee
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { Producao, Area } from '../types/agro';
 import { exportToCSV, exportToXLSX, exportToPDF } from '../utils/exportHelpers';
+import ExportGenerateButton from './ExportGenerateButton';
 
 interface DashboardSafraViewProps {
   producoes: Producao[];
@@ -109,32 +110,11 @@ export default function DashboardSafraView({
         </div>
 
         <div className="flex flex-wrap gap-2 items-center">
-          <button 
-            onClick={handleExportPDF}
-            className="px-3.5 py-2 border border-red-200 bg-red-50 text-red-700 font-bold text-xs tracking-wider uppercase rounded-xl hover:bg-red-100 transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
-            title="Exportar documento em formato PDF"
-          >
-            <FileText className="w-4 h-4 text-red-600" />
-            <span>.PDF</span>
-          </button>
-          
-          <button 
-            onClick={handleExportXLSX}
-            className="px-3.5 py-2 border border-emerald-200 bg-emerald-50 text-emerald-700 font-bold text-xs tracking-wider uppercase rounded-xl hover:bg-emerald-100 transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
-            title="Exportar planilha nativa Excel .XLSX"
-          >
-            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
-            <span>.XLSX</span>
-          </button>
-
-          <button 
-            onClick={handleExportCSVInternal}
-            className="px-3.5 py-2 border border-slate-300 bg-white text-slate-700 font-bold text-xs tracking-wider uppercase rounded-xl hover:bg-slate-50 transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
-            title="Exportar dados estruturados em CSV"
-          >
-            <Download className="w-4 h-4 text-slate-500" />
-            <span>.CSV</span>
-          </button>
+          <ExportGenerateButton 
+            onExportPDF={handleExportPDF}
+            onExportXLSX={handleExportXLSX}
+            onExportCSV={handleExportCSVInternal}
+          />
         </div>
       </div>
 

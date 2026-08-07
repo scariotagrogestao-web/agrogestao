@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useFirebaseSync } from './useFirebaseSync';
 import Header from './components/Header';
 import DashboardView from './components/DashboardView';
@@ -9,16 +9,10 @@ import ProducaoEntryView from './components/ProducaoEntryView';
 import PagamentoReportView from './components/PagamentoReportView';
 import DashboardSafraView from './components/DashboardSafraView';
 import SettingsView from './components/SettingsView';
+import UnsavedChangesModal from './components/UnsavedChangesModal';
 import * as XLSX from 'xlsx';
 import logoAgrogestao from './logo_agrogestao.png';
 import logoIdeia from './logo_ideia.jpeg';
-
-  // Add rendering for Settings view
-  // After existing view conditions, add:
-  // {currentView === 'settings' && isAdmin && (
-  //   <SettingsView customUsers={customUsers} setCustomUsers={setCustomUsers} />
-  // )}
-
 
 import { initialClientsAndVehicles, initialExpenses, initialLocalitySheets } from './initialData';
 import { ClientOrVehicle, LocalitySheet, Expense, HourlyReading, MachineConfig, AuditLog } from './types';
@@ -133,6 +127,60 @@ export default function App() {
     }
     return true;
   };
+
+  // Unsaved changes navigation guard state
+  const [isMachineHoursDirty, setIsMachineHoursDirty] = useState(false);
+  const [isUnsavedModalOpen, setIsUnsavedModalOpen] = useState(false);
+  const [pendingTargetView, setPendingTargetView] = useState<string | null>(null);
+  const machineHoursSaveHandlerRef = useRef<(() => boolean) | null>(null);
+
+  const handleAttemptNavigate = (targetView: string) => {
+    if (currentView === 'hours' && isMachineHoursDirty && targetView !== 'hours') {
+      setPendingTargetView(targetView);
+      setIsUnsavedModalOpen(true);
+      return;
+    }
+    setCurrentView(targetView);
+  };
+
+  const handleSaveAndExitNavigation = () => {
+    const success = machineHoursSaveHandlerRef.current?.();
+    if (success !== false) {
+      setIsMachineHoursDirty(false);
+      setIsUnsavedModalOpen(false);
+      if (pendingTargetView) {
+        setCurrentView(pendingTargetView);
+        setPendingTargetView(null);
+      }
+    }
+  };
+
+  const handleExitWithoutSaveNavigation = () => {
+    setIsMachineHoursDirty(false);
+    setIsUnsavedModalOpen(false);
+    if (pendingTargetView) {
+      setCurrentView(pendingTargetView);
+      setPendingTargetView(null);
+    }
+  };
+
+  const handleCancelNavigation = () => {
+    setIsUnsavedModalOpen(false);
+    setPendingTargetView(null);
+  };
+
+  // Browser reload / tab close protection
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (currentView === 'hours' && isMachineHoursDirty) {
+        e.preventDefault();
+        e.returnValue = 'Existem alterações não salvas. Deseja realmente sair?';
+        return e.returnValue;
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [currentView, isMachineHoursDirty]);
 
   // Migrate 'admin' user into customUsers if missing
   useEffect(() => {
@@ -897,7 +945,7 @@ export default function App() {
         searchQuery={globalSearch} 
         onSearchChange={setGlobalSearch} 
         currentView={currentView}
-        onNavigate={setCurrentView}
+        onNavigate={handleAttemptNavigate}
         placeholder={currentView === 'expenses' ? "Filtrar por despesa ou motorista..." : "Buscar nos registros..."}
         isAdmin={isCurrentUserAdmin}
         onLogout={handleLogout}
@@ -912,7 +960,7 @@ export default function App() {
             clientsAndVehicles={clientsAndVehicles}
             producoes={producoes}
             motoristas={motoristas}
-            onNavigate={setCurrentView}
+            onNavigate={handleAttemptNavigate}
             onExport={handleExportAllSpreadsheets}
           />
         )}
@@ -947,6 +995,8 @@ export default function App() {
             onDeleteLocality={handleDeleteLocality}
             onAddDate={handleAddDate}
             onExport={handleExportAllSpreadsheets}
+            onHasUnsavedChangesChange={setIsMachineHoursDirty}
+            registerSaveHandler={(fn) => { machineHoursSaveHandlerRef.current = fn; }}
           />
         )}
  
@@ -1014,6 +1064,12 @@ export default function App() {
           <img src={logoIdeia} alt="IdeIA Logo" className="h-6 w-auto object-contain rounded brightness-110" />
         </div>
       </footer>
+      <UnsavedChangesModal 
+        isOpen={isUnsavedModalOpen}
+        onSaveAndExit={handleSaveAndExitNavigation}
+        onExitWithoutSave={handleExitWithoutSaveNavigation}
+        onCancel={handleCancelNavigation}
+      />
     </div>
   );
 }

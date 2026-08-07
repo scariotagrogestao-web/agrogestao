@@ -29,6 +29,7 @@ import { LocalitySheet, Expense, HourlyReading, ClientOrVehicle } from '../types
 import { Producao, Motorista } from '../types/agro';
 import { calculateSilagemRevenue, calculateDriverCosts, isTruckVehicle } from '../utils/agroHelpers';
 import { exportToCSV, exportToXLSX, exportToPDF } from '../utils/exportHelpers';
+import ExportGenerateButton from './ExportGenerateButton';
 
 interface DashboardViewProps {
   localitySheets: LocalitySheet[];
@@ -460,32 +461,11 @@ export default function DashboardView({
           </p>
         </div>
         <div className="flex flex-wrap gap-2 items-center">
-          <button 
-            onClick={handleExportDashboardPDF}
-            className="px-3.5 py-2 border border-red-200 bg-red-50 text-red-700 font-bold text-xs tracking-wider uppercase rounded-xl hover:bg-red-100 transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
-            title="Exportar resumo em PDF"
-          >
-            <FileText className="w-4 h-4 text-red-600" />
-            <span>.PDF</span>
-          </button>
-          
-          <button 
-            onClick={handleExportDashboardXLSX}
-            className="px-3.5 py-2 border border-emerald-200 bg-emerald-50 text-emerald-700 font-bold text-xs tracking-wider uppercase rounded-xl hover:bg-emerald-100 transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
-            title="Exportar planilha nativa Excel .XLSX"
-          >
-            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
-            <span>.XLSX</span>
-          </button>
-
-          <button 
-            onClick={handleExportDashboardCSV}
-            className="px-3.5 py-2 border border-slate-300 bg-white text-slate-700 font-bold text-xs tracking-wider uppercase rounded-xl hover:bg-slate-50 transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
-            title="Exportar dados estruturados em CSV"
-          >
-            <Download className="w-4 h-4 text-slate-500" />
-            <span>.CSV</span>
-          </button>
+          <ExportGenerateButton 
+            onExportPDF={handleExportDashboardPDF}
+            onExportXLSX={handleExportDashboardXLSX}
+            onExportCSV={handleExportDashboardCSV}
+          />
         </div>
       </div>
 

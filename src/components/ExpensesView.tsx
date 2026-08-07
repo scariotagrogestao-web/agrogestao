@@ -17,6 +17,7 @@ import {
 import { Expense, ClientOrVehicle } from '../types';
 import { getEntityColor } from '../utils/agroHelpers';
 import { exportToCSV, exportToXLSX, exportToPDF } from '../utils/exportHelpers';
+import ExportGenerateButton from './ExportGenerateButton';
 
 interface ExpensesViewProps {
   expenses: Expense[];
@@ -386,32 +387,11 @@ export default function ExpensesView({
           <p className="text-sm text-slate-500">Gerencie e analise as despesas operacionais.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <button 
-            onClick={handleExportPDF}
-            className="flex items-center gap-2 px-3.5 py-2 border border-red-200 bg-red-50 text-red-700 font-bold text-xs tracking-wider uppercase rounded-xl hover:bg-red-100 transition-colors shadow-xs cursor-pointer"
-            title="Gerar relatório em formato PDF"
-          >
-            <FileText className="w-4 h-4 text-red-600" />
-            <span>Gerar .PDF</span>
-          </button>
-          
-          <button 
-            onClick={handleExportXLSX}
-            className="flex items-center gap-2 px-3.5 py-2 border border-emerald-200 bg-emerald-50 text-emerald-700 font-bold text-xs tracking-wider uppercase rounded-xl hover:bg-emerald-100 transition-colors shadow-xs cursor-pointer"
-            title="Exportar planilha nativa Excel .XLSX"
-          >
-            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
-            <span>Exportar .XLSX</span>
-          </button>
-
-          <button 
-            onClick={handleExportCSVInternal}
-            className="flex items-center gap-2 px-3.5 py-2 border border-slate-300 bg-white text-slate-700 font-bold text-xs tracking-wider uppercase rounded-xl hover:bg-slate-50 transition-colors shadow-xs cursor-pointer"
-            title="Exportar dados estruturados em CSV"
-          >
-            <Download className="w-4 h-4 text-slate-500" />
-            <span>Exportar .CSV</span>
-          </button>
+          <ExportGenerateButton 
+            onExportPDF={handleExportPDF}
+            onExportXLSX={handleExportXLSX}
+            onExportCSV={handleExportCSVInternal}
+          />
         </div>
       </div>
 
