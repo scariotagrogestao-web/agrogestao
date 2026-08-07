@@ -33,6 +33,10 @@ export default function ProducaoEntryView({
   const [formError, setFormError] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
 
+  // Table filter states
+  const [filterStartDate, setFilterStartDate] = useState<string>('');
+  const [filterEndDate, setFilterEndDate] = useState<string>('');
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setFormError('');
@@ -281,11 +285,39 @@ export default function ProducaoEntryView({
 
         {/* List of Entries Table (8 columns) */}
         <div className="lg:col-span-8 bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs flex flex-col min-h-[420px]">
-          <div className="p-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between shrink-0">
+          <div className="p-4 border-b border-slate-200 bg-slate-50 flex flex-wrap items-center justify-between gap-3 shrink-0">
             <h3 className="text-sm font-bold text-slate-800">Lançamentos Gravados</h3>
-            <span className="text-[10px] font-extrabold uppercase tracking-wider bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full shadow-2xs">
-              {producoes.length} Registros
-            </span>
+
+            {/* Standardized Date Range Filter Line */}
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-1">
+                <span className="text-[10px] uppercase font-bold text-slate-400">De:</span>
+                <input
+                  type="date"
+                  value={filterStartDate}
+                  onChange={(e) => setFilterStartDate(e.target.value)}
+                  className="bg-white border border-slate-200 rounded-lg text-xs font-semibold px-2 py-1 text-slate-700 outline-none focus:ring-1 focus:ring-emerald-600 cursor-pointer"
+                />
+              </div>
+
+              <div className="flex items-center gap-1">
+                <span className="text-[10px] uppercase font-bold text-slate-400">Até:</span>
+                <input
+                  type="date"
+                  value={filterEndDate}
+                  onChange={(e) => setFilterEndDate(e.target.value)}
+                  className="bg-white border border-slate-200 rounded-lg text-xs font-semibold px-2 py-1 text-slate-700 outline-none focus:ring-1 focus:ring-emerald-600 cursor-pointer"
+                />
+              </div>
+
+              <span className="text-[10px] font-extrabold uppercase tracking-wider bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full shadow-2xs">
+                {producoes.filter(p => {
+                  if (filterStartDate && new Date(p.date + 'T00:00:00').getTime() < new Date(filterStartDate + 'T00:00:00').getTime()) return false;
+                  if (filterEndDate && new Date(p.date + 'T00:00:00').getTime() > new Date(filterEndDate + 'T23:59:59').getTime()) return false;
+                  return true;
+                }).length} Registros
+              </span>
+            </div>
           </div>
 
           <div className="overflow-x-auto flex-1">
@@ -305,7 +337,14 @@ export default function ProducaoEntryView({
                 </tr>
               </thead>
               <tbody className="text-xs text-slate-700 divide-y divide-slate-100 font-medium">
-                {[...producoes].reverse().map((prod, index) => {
+                {[...producoes]
+                  .filter(p => {
+                    if (filterStartDate && new Date(p.date + 'T00:00:00').getTime() < new Date(filterStartDate + 'T00:00:00').getTime()) return false;
+                    if (filterEndDate && new Date(p.date + 'T00:00:00').getTime() > new Date(filterEndDate + 'T23:59:59').getTime()) return false;
+                    return true;
+                  })
+                  .reverse()
+                  .map((prod, index) => {
                   const yieldRate = prod.hectares > 0 ? prod.toneladas / prod.hectares : 0;
                   const bg = index % 2 === 1 ? '#fcfaf2' : '#ffffff'; // beautiful cream alternate zebra style!
                   return (

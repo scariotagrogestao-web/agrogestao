@@ -496,8 +496,10 @@ export default function PagamentoReportView({
                 className="w-full bg-slate-50 border-b-2 border-slate-200 rounded-t-lg text-xs font-semibold px-3 py-2 text-slate-700 flex justify-between items-center text-left cursor-pointer"
               >
                 <span className="truncate">
-                  {selectedAreaIds.length === 0 || selectedAreaIds.length === areas.length
-                    ? 'Todas as Áreas / Fazendas'
+                  {selectedAreaIds.length === 0
+                    ? '🚫 NENHUMA (Selecione uma Fazenda)'
+                    : selectedAreaIds.length === areas.length
+                    ? '🌐 TODAS as Áreas / Fazendas'
                     : `${selectedAreaIds.length} área(s) selecionada(s)`}
                 </span>
                 <span className="text-[10px] text-slate-400 ml-1">▼</span>
@@ -505,6 +507,14 @@ export default function PagamentoReportView({
 
               {isAreaDropdownOpen && (
                 <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-50 p-3 max-h-56 overflow-y-auto space-y-2">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedAreaIds([])}
+                    className="w-full text-left text-xs font-bold text-red-600 hover:bg-red-50 p-1.5 rounded transition-colors border-b border-slate-100 flex items-center gap-1.5"
+                  >
+                    <span>🚫 NENHUMA (Desmarcar Todas)</span>
+                  </button>
+
                   <label className="flex items-center gap-2 text-xs font-bold text-slate-800 p-1 hover:bg-slate-50 rounded cursor-pointer border-b border-slate-100 pb-2">
                     <input
                       type="checkbox"
@@ -512,7 +522,7 @@ export default function PagamentoReportView({
                       onChange={toggleSelectAllAreas}
                       className="w-4 h-4 text-emerald-600 rounded border-slate-300"
                     />
-                    <span>☐ Selecionar Todas as Áreas</span>
+                    <span>🌐 TODAS as Áreas / Fazendas</span>
                   </label>
 
                   {areas.map(a => (

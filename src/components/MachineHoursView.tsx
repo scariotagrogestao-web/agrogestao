@@ -18,7 +18,8 @@ import {
   X,
   AlertCircle,
   FileText,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Filter
 } from 'lucide-react';
 import { LocalitySheet, MachineConfig, HourlyReading, ClientOrVehicle } from '../types';
 import { isTruckVehicle } from '../utils/agroHelpers';
@@ -52,7 +53,7 @@ export default function MachineHoursView({
   onHasUnsavedChangesChange,
   registerSaveHandler
 }: MachineHoursViewProps) {
-  const [activeSheetId, setActiveSheetId] = useState<string>('guaraci-fr700');
+  const [activeSheetId, setActiveSheetId] = useState<string>('none');
   const [isCompact, setIsCompact] = useState<boolean>(false);
 
   // Column color palettes
@@ -66,9 +67,10 @@ export default function MachineHoursView({
   ];
 
   // Filter States
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
   const [selectedMachineFilter, setSelectedMachineFilter] = useState<string>('all');
   const [selectedDriverFilter, setSelectedDriverFilter] = useState<string>('all');
-  const [selectedMonthFilter, setSelectedMonthFilter] = useState<string>(() => new Date().getMonth().toString());
 
   // Modal states for adding machine/date/locality
   const [isAddMachineOpen, setIsAddMachineOpen] = useState(false);
@@ -126,6 +128,15 @@ export default function MachineHoursView({
 
   // Find active sheet (or combine all sheets when activeSheetId === 'all')
   const activeSheet = useMemo(() => {
+    if (activeSheetId === 'none') {
+      return {
+        id: 'none',
+        name: 'Nenhuma Localidade Selecionada',
+        machines: [],
+        dates: []
+      };
+    }
+
     if (activeSheetId === 'all') {
       const allDates = Array.from(new Set(localitySheets.flatMap(s => s.dates)));
       const combinedMachines: MachineConfig[] = [];
@@ -148,24 +159,31 @@ export default function MachineHoursView({
         dates: allDates
       };
     }
-    return localitySheets.find(s => s.id === activeSheetId) || localitySheets[0] || { id: '', name: 'Nenhuma', machines: [], dates: [] };
+    return localitySheets.find(s => s.id === activeSheetId) || { id: 'none', name: 'Nenhuma Localidade Selecionada', machines: [], dates: [] };
   }, [localitySheets, activeSheetId]);
 
   const filteredDates = useMemo(() => {
-    if (selectedMonthFilter === 'all') return activeSheet.dates;
-    
-    const monthIndex = parseInt(selectedMonthFilter, 10);
-    const shortNames = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
-    const numNames = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
-    
-    const short = shortNames[monthIndex];
-    const num = numNames[monthIndex];
-    
-    return activeSheet.dates.filter(d => {
-      const dLow = d.toLowerCase();
-      return dLow.includes(short) || dLow.includes('/' + num);
-    });
-  }, [activeSheet.dates, selectedMonthFilter]);
+    let result = activeSheet.dates;
+
+    if (startDate || endDate) {
+      const startMs = startDate ? new Date(startDate + 'T00:00:00').getTime() : -Infinity;
+      const endMs = endDate ? new Date(endDate + 'T23:59:59').getTime() : Infinity;
+
+      result = result.filter(d => {
+        const parts = d.split(/[\/\-]/);
+        if (parts.length === 3) {
+          const day = parseInt(parts[0], 10);
+          const month = parseInt(parts[1], 10) - 1;
+          const year = parseInt(parts[2], 10) < 100 ? 2000 + parseInt(parts[2], 10) : parseInt(parts[2], 10);
+          const dateMs = new Date(year, month, day).getTime();
+          return dateMs >= startMs && dateMs <= endMs;
+        }
+        return true;
+      });
+    }
+
+    return result;
+  }, [activeSheet.dates, startDate, endDate]);
 
   // Helper: calculate hours for a single entry
   const calculateHours = (initial: string, final: string): number => {
@@ -535,6 +553,10 @@ export default function MachineHoursView({
   };
 
   const handleExportPDF = () => {
+    if (activeSheetId === 'none') {
+      alert("Por favor, selecione uma fazenda específica ou 'TODAS' no filtro de Localidade / Fazenda para exportar os dados.");
+      return;
+    }
     const headers = ['Localidade / Fazenda', 'Máquina / Veículo', 'Tarifa (R$/h)', 'Total Horas', 'Custo Total (R$)'];
     const rows: (string | number)[][] = [];
 
@@ -559,6 +581,10 @@ export default function MachineHoursView({
   };
 
   const handleExportXLSX = () => {
+    if (activeSheetId === 'none') {
+      alert("Por favor, selecione uma fazenda específica ou 'TODAS' no filtro de Localidade / Fazenda para exportar os dados.");
+      return;
+    }
     const data: Record<string, any>[] = [];
     localitySheets.forEach(sheet => {
       if (activeSheetId !== 'all' && sheet.id !== activeSheetId) return;
@@ -581,6 +607,10 @@ export default function MachineHoursView({
   };
 
   const handleExportCSVInternal = () => {
+    if (activeSheetId === 'none') {
+      alert("Por favor, selecione uma fazenda específica ou 'TODAS' no filtro de Localidade / Fazenda para exportar os dados.");
+      return;
+    }
     const data: Record<string, any>[] = [];
     localitySheets.forEach(sheet => {
       if (activeSheetId !== 'all' && sheet.id !== activeSheetId) return;
@@ -651,31 +681,55 @@ export default function MachineHoursView({
         </div>
       </div>
 
-      {/* Grid Layout: Sidebar Filter & KPI cards */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 shrink-0">
-        {/* Filter Panel (3 cols) */}
-        <div className="col-span-1 lg:col-span-3 bg-white border border-slate-200 rounded-xl p-5 flex flex-col gap-5 shadow-xs">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-[#002046] border-b border-slate-100 pb-2">
-            Filtros de Visão
-          </h3>
+      {/* Global Standardized Filters Panel (Single Horizontal Line) */}
+      <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col gap-3 shrink-0 relative z-20">
+        <div className="flex items-center gap-2 text-slate-700 font-bold text-xs uppercase tracking-wider">
+          <Filter className="w-4 h-4 text-emerald-700" />
+          <span>Filtros de Horas-Máquina:</span>
+        </div>
 
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Localidade / Fazenda</label>
-            <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-3 w-full">
+          {/* Data Inicial */}
+          <div className="flex flex-col gap-1 w-full sm:w-36">
+            <span className="text-[10px] uppercase font-bold text-slate-400">Data Inicial</span>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="w-full bg-slate-50 border-b-2 border-slate-200 rounded-t-lg text-xs font-semibold px-3 py-2 text-slate-700 focus:outline-none focus:border-emerald-600 outline-none cursor-pointer"
+            />
+          </div>
+
+          {/* Data Final */}
+          <div className="flex flex-col gap-1 w-full sm:w-36">
+            <span className="text-[10px] uppercase font-bold text-slate-400">Data Final</span>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="w-full bg-slate-50 border-b-2 border-slate-200 rounded-t-lg text-xs font-semibold px-3 py-2 text-slate-700 focus:outline-none focus:border-emerald-600 outline-none cursor-pointer"
+            />
+          </div>
+
+          {/* Localidade / Fazenda */}
+          <div className="flex flex-col gap-1 w-full sm:w-52">
+            <span className="text-[10px] uppercase font-bold text-slate-400">Localidade / Fazenda</span>
+            <div className="flex gap-1.5">
               <select 
                 value={activeSheetId}
                 onChange={(e) => setActiveSheetId(e.target.value)}
-                className="flex-1 min-w-0 border border-slate-200 rounded-lg p-2 bg-slate-50 font-bold text-sm text-slate-800 focus:border-[#002046] focus:ring-1 focus:ring-[#002046] outline-none text-ellipsis overflow-hidden cursor-pointer"
+                className="w-full bg-slate-50 border-b-2 border-slate-200 rounded-t-lg text-xs font-bold text-slate-800 focus:outline-none focus:border-emerald-600 outline-none truncate cursor-pointer py-2 px-2.5"
               >
-                <option value="all">🌐 Todas as Áreas / Fazendas</option>
+                <option value="none">🚫 NENHUMA (Selecione uma Fazenda)</option>
+                <option value="all">🌐 TODAS as Áreas / Fazendas</option>
                 {localitySheets.map(s => (
                   <option key={s.id} value={s.id}>{s.name}</option>
                 ))}
               </select>
               <button
-                disabled={activeSheetId === 'all'}
+                disabled={activeSheetId === 'all' || activeSheetId === 'none'}
                 onClick={() => {
-                  if (activeSheetId === 'all') return;
+                  if (activeSheetId === 'all' || activeSheetId === 'none') return;
                   if (localitySheets.length <= 1) {
                     alert('Deve haver pelo menos uma localidade.');
                     return;
@@ -684,55 +738,21 @@ export default function MachineHoursView({
                   const nextSheet = localitySheets.find(s => s.id !== activeSheetId);
                   if (nextSheet) setActiveSheetId(nextSheet.id);
                 }}
-                className="w-[38px] h-[38px] flex items-center justify-center shrink-0 border border-red-200 hover:bg-red-50 hover:border-red-300 text-red-500 rounded-lg transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                className="w-[34px] h-[34px] flex items-center justify-center shrink-0 border border-red-200 hover:bg-red-50 hover:border-red-300 text-red-500 rounded-lg transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
                 title="Excluir localidade atual"
               >
-                <Trash2 className="w-4 h-4" />
+                <Trash2 className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Mês do Apontamento</label>
-            <select 
-              value={selectedMonthFilter}
-              onChange={(e) => setSelectedMonthFilter(e.target.value)}
-              className="w-full border border-slate-200 rounded-lg p-2 bg-slate-50 font-medium text-xs text-slate-700 focus:border-[#002046] focus:ring-1 focus:ring-[#002046] outline-none"
-            >
-              <option value="all">Todos os Meses</option>
-              <option value="0">Janeiro</option>
-              <option value="1">Fevereiro</option>
-              <option value="2">Março</option>
-              <option value="3">Abril</option>
-              <option value="4">Maio</option>
-              <option value="5">Junho</option>
-              <option value="6">Julho</option>
-              <option value="7">Agosto</option>
-              <option value="8">Setembro</option>
-              <option value="9">Outubro</option>
-              <option value="10">Novembro</option>
-              <option value="11">Dezembro</option>
-            </select>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Status da Máquina</label>
-            <div className="flex gap-2 flex-wrap">
-              <span className="px-2.5 py-1 rounded-full border border-emerald-600 text-emerald-800 font-bold text-[10px] uppercase bg-emerald-50 cursor-pointer shadow-2xs">
-                Ativa
-              </span>
-              <span className="px-2.5 py-1 rounded-full border border-slate-200 text-slate-500 font-bold text-[10px] uppercase hover:bg-slate-50 cursor-pointer transition-colors">
-                Em Manutenção
-              </span>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-1.5 border-t border-slate-100 pt-3">
-            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Selecionar Máquina / Veículo</label>
+          {/* Máquina / Veículo */}
+          <div className="flex flex-col gap-1 w-full sm:w-44">
+            <span className="text-[10px] uppercase font-bold text-slate-400">Máquina / Veículo</span>
             <select 
               value={selectedMachineFilter}
               onChange={(e) => setSelectedMachineFilter(e.target.value)}
-              className="w-full border border-slate-200 rounded-lg p-2 bg-slate-50 font-medium text-xs text-slate-700 focus:border-[#002046] focus:ring-1 focus:ring-[#002046] outline-none"
+              className="w-full bg-slate-50 border-b-2 border-slate-200 rounded-t-lg text-xs font-semibold px-3 py-2 text-slate-700 focus:outline-none focus:border-emerald-600 outline-none cursor-pointer"
             >
               <option value="all">Todas as Máquinas</option>
               {activeSheet.machines.map(m => (
@@ -741,12 +761,13 @@ export default function MachineHoursView({
             </select>
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Selecionar Motorista / Func.</label>
+          {/* Motorista / Func. */}
+          <div className="flex flex-col gap-1 w-full sm:w-40">
+            <span className="text-[10px] uppercase font-bold text-slate-400">Motorista / Func.</span>
             <select 
               value={selectedDriverFilter}
               onChange={(e) => setSelectedDriverFilter(e.target.value)}
-              className="w-full border border-slate-200 rounded-lg p-2 bg-slate-50 font-medium text-xs text-slate-700 focus:border-[#002046] focus:ring-1 focus:ring-[#002046] outline-none"
+              className="w-full bg-slate-50 border-b-2 border-slate-200 rounded-t-lg text-xs font-semibold px-3 py-2 text-slate-700 focus:outline-none focus:border-emerald-600 outline-none cursor-pointer"
             >
               <option value="all">Todos os Motoristas</option>
               {driverOptions.map(driver => (
@@ -755,9 +776,10 @@ export default function MachineHoursView({
             </select>
           </div>
         </div>
+      </div>
 
-        {/* KPI Cards (9 cols) */}
-        <div className="col-span-1 lg:col-span-9 grid grid-cols-1 sm:grid-cols-3 gap-6">
+      {/* KPI Cards (3 columns) */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 shrink-0">
           {/* Card 1: Total Hours */}
           <div className="bg-white border-t-4 border-t-[#002046] border border-slate-200 rounded-xl p-5 flex flex-col justify-between shadow-xs">
             <div className="flex justify-between items-start">
@@ -805,7 +827,6 @@ export default function MachineHoursView({
             </div>
           </div>
         </div>
-      </div>
 
       {/* Mobile Form for Operators */}
       <MobileHoursForm 
@@ -862,9 +883,22 @@ export default function MachineHoursView({
         </div>
 
         {/* Spreadsheet Table Container */}
-        <div className="overflow-auto flex-1 select-none">
-          <table className="min-w-full border-collapse border-slate-200" style={{ tableLayout: 'fixed', width: 'max-content' }}>
-            <thead>
+        {activeSheetId === 'none' ? (
+          <div className="p-12 text-center flex flex-col items-center justify-center gap-3 bg-slate-50/50 flex-1">
+            <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 shadow-xs">
+              <Filter className="w-6 h-6" />
+            </div>
+            <div className="max-w-md">
+              <h3 className="font-display font-bold text-slate-800 text-base mb-1">Nenhuma Localidade / Fazenda Selecionada</h3>
+              <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                Selecione uma fazenda no filtro <strong>LOCALIDADE / FAZENDA</strong> no menu ao lado para visualizar e registrar os horímetros, ou escolha <strong>TODAS</strong> para ver a consolidação geral do período.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="overflow-auto flex-1 select-none">
+            <table className="min-w-full border-collapse border-slate-200" style={{ tableLayout: 'fixed', width: 'max-content' }}>
+              <thead>
               {/* Machine Grouping Header Row */}
               <tr className="bg-slate-100 text-xs font-bold text-slate-600 border-b border-slate-200">
                 <th className="p-2 border-r border-slate-200 sticky left-0 z-20 bg-slate-100 w-24"></th>
@@ -1116,6 +1150,7 @@ export default function MachineHoursView({
             </tfoot>
           </table>
         </div>
+        )}
       </div>
 
       {/* Add Machine Modal */}

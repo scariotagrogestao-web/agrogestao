@@ -85,7 +85,7 @@ export default function DashboardView({
 }: DashboardViewProps) {
   const [startDate, setStartDate] = useState<string>(getFirstDayOfMonthISO);
   const [endDate, setEndDate] = useState<string>(getTodayISO);
-  const [selectedLocality, setSelectedLocality] = useState<string>('all');
+  const [selectedLocality, setSelectedLocality] = useState<string>('none');
   const [selectedMachine, setSelectedMachine] = useState<string>('all');
   const [selectedDriver, setSelectedDriver] = useState<string>('all');
   const [selectedExpenseType, setSelectedExpenseType] = useState<string>('all');
@@ -515,7 +515,8 @@ export default function DashboardView({
                 onChange={(e) => setSelectedLocality(e.target.value)}
                 className="w-full bg-slate-50 border-b-2 border-slate-200 rounded-t-lg text-xs font-semibold px-3 py-2 text-slate-700 focus:outline-none focus:border-emerald-600 outline-none cursor-pointer"
               >
-                <option value="all">Todas as Áreas / Fazendas</option>
+                <option value="none">🚫 NENHUMA (Selecione uma Fazenda)</option>
+                <option value="all">🌐 TODAS as Áreas / Fazendas</option>
                 {localitySheets.map(sheet => (
                   <option key={sheet.id} value={sheet.id}>{sheet.name}</option>
                 ))}

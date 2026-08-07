@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { Landmark, Scale, Crop, TrendingUp, DollarSign, FileText, FileSpreadsheet, Download } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Landmark, Scale, Crop, TrendingUp, DollarSign, FileText, FileSpreadsheet, Download, Filter } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { Producao, Area } from '../types/agro';
 import { exportToCSV, exportToXLSX, exportToPDF } from '../utils/exportHelpers';
@@ -14,17 +14,37 @@ export default function DashboardSafraView({
   producoes,
   areas
 }: DashboardSafraViewProps) {
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
+  const [selectedArea, setSelectedArea] = useState<string>('none');
+
+  const filteredProducoes = useMemo(() => {
+    if (selectedArea === 'none') return [];
+
+    return producoes.filter(p => {
+      if (selectedArea !== 'all' && p.areaId !== selectedArea) return false;
+      
+      if (startDate || endDate) {
+        const pDateMs = new Date(p.date + 'T00:00:00').getTime();
+        if (startDate && pDateMs < new Date(startDate + 'T00:00:00').getTime()) return false;
+        if (endDate && pDateMs > new Date(endDate + 'T23:59:59').getTime()) return false;
+      }
+      
+      return true;
+    });
+  }, [producoes, selectedArea, startDate, endDate]);
+
   // 1. KPI Calculations
   const stats = useMemo(() => {
     let totalTons = 0;
     let totalHa = 0;
     
-    producoes.forEach(p => {
+    filteredProducoes.forEach(p => {
       totalTons += p.toneladas;
       totalHa += p.hectares;
     });
 
-    const silagemRevenue = producoes.reduce((sum, p) => {
+    const silagemRevenue = filteredProducoes.reduce((sum, p) => {
       if (typeof p.valorTotalReceita === 'number' && !isNaN(p.valorTotalReceita)) {
         return sum + p.valorTotalReceita;
       }
@@ -42,28 +62,31 @@ export default function DashboardSafraView({
       averageYield,
       silagemRevenue
     };
-  }, [producoes]);
+  }, [filteredProducoes]);
 
   // 2. Production grouped by Area
   const areaChartData = useMemo(() => {
-    const areaMap: Record<string, { name: string; toneladas: number; hectares: number }> = {};
+    const areaMap: Record<string, { id: string; name: string; toneladas: number; hectares: number; culture: string; yield: number }> = {};
     
-    producoes.forEach(p => {
-      const areaName = areas.find(a => a.id === p.areaId)?.name || p.areaId || 'Área Geral';
-      if (!areaMap[areaName]) {
-        areaMap[areaName] = { name: areaName, toneladas: 0, hectares: 0 };
+    filteredProducoes.forEach(p => {
+      const area = areas.find(a => a.id === p.areaId);
+      const areaId = p.areaId || 'geral';
+      const areaName = area?.name || 'Área Geral';
+      
+      if (!areaMap[areaId]) {
+        areaMap[areaId] = { id: areaId, name: areaName, toneladas: 0, hectares: 0, culture: area?.cultura || '-', yield: 0 };
       }
-      areaMap[areaName].toneladas += p.toneladas;
-      areaMap[areaName].hectares += p.hectares;
+      areaMap[areaId].toneladas += p.toneladas;
+      areaMap[areaId].hectares += p.hectares;
     });
 
     return Object.values(areaMap)
       .map(item => ({
         ...item,
-        rendimento: item.hectares > 0 ? parseFloat((item.toneladas / item.hectares).toFixed(2)) : 0
+        yield: item.hectares > 0 ? parseFloat((item.toneladas / item.hectares).toFixed(2)) : 0
       }))
       .sort((a, b) => b.toneladas - a.toneladas);
-  }, [producoes, areas]);
+  }, [filteredProducoes, areas]);
 
   const chartData = areaChartData;
 
@@ -115,6 +138,54 @@ export default function DashboardSafraView({
             onExportXLSX={handleExportXLSX}
             onExportCSV={handleExportCSVInternal}
           />
+        </div>
+      </div>
+
+      {/* Global Standardized Filters Panel (Single Horizontal Line) */}
+      <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col gap-3 shrink-0 relative z-20">
+        <div className="flex items-center gap-2 text-slate-700 font-bold text-xs uppercase tracking-wider">
+          <Filter className="w-4 h-4 text-emerald-700" />
+          <span>Filtros de Métricas de Safra:</span>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3 w-full">
+          {/* Data Inicial */}
+          <div className="flex flex-col gap-1 w-full sm:w-36">
+            <span className="text-[10px] uppercase font-bold text-slate-400">Data Inicial</span>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="w-full bg-slate-50 border-b-2 border-slate-200 rounded-t-lg text-xs font-semibold px-3 py-2 text-slate-700 focus:outline-none focus:border-emerald-600 outline-none cursor-pointer"
+            />
+          </div>
+
+          {/* Data Final */}
+          <div className="flex flex-col gap-1 w-full sm:w-36">
+            <span className="text-[10px] uppercase font-bold text-slate-400">Data Final</span>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="w-full bg-slate-50 border-b-2 border-slate-200 rounded-t-lg text-xs font-semibold px-3 py-2 text-slate-700 focus:outline-none focus:border-emerald-600 outline-none cursor-pointer"
+            />
+          </div>
+
+          {/* Fazenda / Área */}
+          <div className="flex flex-col gap-1 w-full sm:w-52">
+            <span className="text-[10px] uppercase font-bold text-slate-400">Fazenda / Área</span>
+            <select
+              value={selectedArea}
+              onChange={(e) => setSelectedArea(e.target.value)}
+              className="w-full bg-slate-50 border-b-2 border-slate-200 rounded-t-lg text-xs font-semibold px-3 py-2 text-slate-700 focus:outline-none focus:border-emerald-600 outline-none cursor-pointer"
+            >
+              <option value="none">🚫 NENHUMA (Selecione uma Fazenda)</option>
+              <option value="all">🌐 TODAS as Áreas / Fazendas</option>
+              {areas.map(a => (
+                <option key={a.id} value={a.id}>{a.name}</option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 

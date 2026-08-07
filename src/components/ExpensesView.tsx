@@ -12,7 +12,8 @@ import {
   TrendingUp, 
   AlertCircle,
   FileText,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Filter
 } from 'lucide-react';
 import { Expense, ClientOrVehicle } from '../types';
 import { getEntityColor } from '../utils/agroHelpers';
@@ -58,7 +59,7 @@ export default function ExpensesView({
   const [typeFilter, setTypeFilter] = useState('Todos os Tipos');
   const [machineFilter, setMachineFilter] = useState('Todas as Máquinas');
   const [driverFilter, setDriverFilter] = useState('Todos os Motoristas');
-  const [areaFilter, setAreaFilter] = useState('Todas as Áreas');
+  const [areaFilter, setAreaFilter] = useState('none');
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -215,6 +216,7 @@ export default function ExpensesView({
         ));
 
       // Area matches
+      if (areaFilter === 'none') return false;
       const areaLower = areaFilter.toLowerCase().trim();
       const matchesArea = areaFilter === 'Todas as Áreas' || areaFilter === 'all' || areaFilter === 'Todas as Áreas / Fazendas' ||
         (exp.localityName && exp.localityName.toLowerCase().includes(areaLower));
@@ -395,51 +397,142 @@ export default function ExpensesView({
         </div>
       </div>
 
-      {/* Month Selector Control Bar */}
-      <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-wrap items-center justify-between gap-4 shadow-xs">
-        <div className="flex items-center gap-2">
-          <Calendar className="w-5 h-5 text-[#002046]" />
-          <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Período de Análise:</span>
-          <span className="text-sm font-bold text-[#002046] font-mono bg-slate-100 px-3 py-1 rounded-md border border-slate-200">
-            {selectedMonthLabel}
-          </span>
+      {/* Global Standardized Control & Filter Bar (Single Horizontal Line) */}
+      <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col gap-3 shrink-0 relative z-20">
+        <div className="flex items-center gap-2 text-slate-700 font-bold text-xs uppercase tracking-wider">
+          <Filter className="w-4 h-4 text-emerald-700" />
+          <span>Filtros do Controle de Gastos:</span>
         </div>
 
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handlePrevMonth}
-            disabled={selectedYearMonth === 'all'}
-            className="p-2 border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors text-slate-700 disabled:opacity-40 cursor-pointer"
-            title="Mês Anterior"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </button>
+        <div className="flex flex-wrap items-center gap-3 w-full">
+          {/* Data Inicial */}
+          <div className="flex flex-col gap-1 w-full sm:w-36">
+            <span className="text-[10px] uppercase font-bold text-slate-400">Data Inicial</span>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="w-full bg-slate-50 border-b-2 border-slate-200 rounded-t-lg text-xs font-semibold px-3 py-2 text-slate-700 focus:outline-none focus:border-emerald-600 outline-none cursor-pointer"
+            />
+          </div>
 
-          <select
-            value={selectedYearMonth}
-            onChange={(e) => setSelectedYearMonth(e.target.value)}
-            className="border border-slate-200 bg-slate-50 font-bold text-xs text-slate-800 rounded-lg p-2 outline-none focus:ring-1 focus:ring-[#002046] cursor-pointer"
-          >
-            <option value="all">Ver Todo o Histórico</option>
-            {Array.from({ length: 36 }, (_, i) => {
-              const startYear = 2025;
-              const date = new Date(startYear, i, 1);
-              const y = date.getFullYear();
-              const m = String(date.getMonth() + 1).padStart(2, '0');
-              const val = `${y}-${m}`;
-              const label = `${monthNamesPt[date.getMonth()]} / ${y}`;
-              return <option key={val} value={val}>{label}</option>;
-            })}
-          </select>
+          {/* Data Final */}
+          <div className="flex flex-col gap-1 w-full sm:w-36">
+            <span className="text-[10px] uppercase font-bold text-slate-400">Data Final</span>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="w-full bg-slate-50 border-b-2 border-slate-200 rounded-t-lg text-xs font-semibold px-3 py-2 text-slate-700 focus:outline-none focus:border-emerald-600 outline-none cursor-pointer"
+            />
+          </div>
 
-          <button
-            onClick={handleNextMonth}
-            disabled={selectedYearMonth === 'all'}
-            className="p-2 border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors text-slate-700 disabled:opacity-40 cursor-pointer"
-            title="Mês Seguinte"
-          >
-            <ChevronRight className="w-4 h-4" />
-          </button>
+          {/* Período / Mês */}
+          <div className="flex flex-col gap-1 w-full sm:w-48">
+            <span className="text-[10px] uppercase font-bold text-slate-400">Período de Análise</span>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={handlePrevMonth}
+                disabled={selectedYearMonth === 'all'}
+                className="p-1.5 border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors text-slate-700 disabled:opacity-40 cursor-pointer bg-slate-50"
+                title="Mês Anterior"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+
+              <select
+                value={selectedYearMonth}
+                onChange={(e) => setSelectedYearMonth(e.target.value)}
+                className="flex-1 bg-slate-50 border-b-2 border-slate-200 rounded-t-lg text-xs font-bold text-slate-800 focus:outline-none focus:border-emerald-600 outline-none cursor-pointer py-2 px-2"
+              >
+                <option value="all">Ver Todo o Histórico</option>
+                {Array.from({ length: 36 }, (_, i) => {
+                  const startYear = 2025;
+                  const date = new Date(startYear, i, 1);
+                  const y = date.getFullYear();
+                  const m = String(date.getMonth() + 1).padStart(2, '0');
+                  const val = `${y}-${m}`;
+                  const label = `${monthNamesPt[date.getMonth()]} / ${y}`;
+                  return <option key={val} value={val}>{label}</option>;
+                })}
+              </select>
+
+              <button
+                type="button"
+                onClick={handleNextMonth}
+                disabled={selectedYearMonth === 'all'}
+                className="p-1.5 border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors text-slate-700 disabled:opacity-40 cursor-pointer bg-slate-50"
+                title="Mês Seguinte"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Fazenda / Área */}
+          <div className="flex flex-col gap-1 w-full sm:w-48">
+            <span className="text-[10px] uppercase font-bold text-slate-400">Fazenda / Área</span>
+            <select
+              value={areaFilter}
+              onChange={(e) => setAreaFilter(e.target.value)}
+              className="w-full bg-slate-50 border-b-2 border-slate-200 rounded-t-lg text-xs font-semibold px-3 py-2 text-slate-700 focus:outline-none focus:border-emerald-600 outline-none cursor-pointer"
+            >
+              <option value="none">🚫 NENHUMA (Selecione uma Fazenda)</option>
+              <option value="Todas as Áreas">🌐 TODAS as Áreas / Fazendas</option>
+              {areasList.map(a => (
+                <option key={a} value={a}>{a}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Tipo de Gasto */}
+          <div className="flex flex-col gap-1 w-full sm:w-44">
+            <span className="text-[10px] uppercase font-bold text-slate-400">Tipo de Gasto</span>
+            <select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              className="w-full bg-slate-50 border-b-2 border-slate-200 rounded-t-lg text-xs font-semibold px-3 py-2 text-slate-700 focus:outline-none focus:border-emerald-600 outline-none cursor-pointer"
+            >
+              <option value="Todos os Tipos">Todos os Tipos</option>
+              <option value="combustível">Combustível</option>
+              <option value="manutenção">Manutenção</option>
+              <option value="peças">Peças</option>
+              <option value="alimentação">Alimentação</option>
+              <option value="pedágio">Pedágio</option>
+              <option value="outros">Outros</option>
+            </select>
+          </div>
+
+          {/* Máquina / Veículo */}
+          <div className="flex flex-col gap-1 w-full sm:w-44">
+            <span className="text-[10px] uppercase font-bold text-slate-400">Máquina / Veículo</span>
+            <select
+              value={machineFilter}
+              onChange={(e) => setMachineFilter(e.target.value)}
+              className="w-full bg-slate-50 border-b-2 border-slate-200 rounded-t-lg text-xs font-semibold px-3 py-2 text-slate-700 focus:outline-none focus:border-emerald-600 outline-none cursor-pointer"
+            >
+              <option value="Todas as Máquinas">Todas as Máquinas</option>
+              {machinesList.map(m => (
+                <option key={m} value={m}>{m}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Motorista */}
+          <div className="flex flex-col gap-1 w-full sm:w-40">
+            <span className="text-[10px] uppercase font-bold text-slate-400">Motorista</span>
+            <select
+              value={driverFilter}
+              onChange={(e) => setDriverFilter(e.target.value)}
+              className="w-full bg-slate-50 border-b-2 border-slate-200 rounded-t-lg text-xs font-semibold px-3 py-2 text-slate-700 focus:outline-none focus:border-emerald-600 outline-none cursor-pointer"
+            >
+              <option value="Todos os Motoristas">Todos os Motoristas</option>
+              {driversList.map(d => (
+                <option key={d} value={d}>{d}</option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
