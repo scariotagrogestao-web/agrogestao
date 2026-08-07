@@ -13,6 +13,7 @@ export interface CustomUser {
   password: string;
   role?: 'admin' | 'user';
   canDelete?: boolean;
+  configuracoes?: boolean;
 }
 
 interface SettingsViewProps {
@@ -24,14 +25,16 @@ interface SettingsViewProps {
   canDelete?: boolean;
   auditLogs?: AuditLog[];
   currentUser?: string;
+  canAccessSettings?: boolean;
 }
 
-export default function SettingsView({ customUsers, setCustomUsers, handleExportData, handleImportData, isAdmin, canDelete = true, auditLogs = [], currentUser = 'admin' }: SettingsViewProps) {
+export default function SettingsView({ customUsers, setCustomUsers, handleExportData, handleImportData, isAdmin, canDelete = true, auditLogs = [], currentUser = 'admin', canAccessSettings = true }: SettingsViewProps) {
   const [activeTab, setActiveTab] = useState<'geral' | 'auditoria'>('geral');
   const [newUsername, setNewUsername] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [newUserRole, setNewUserRole] = useState<'admin' | 'user'>('admin');
   const [newUserCanDelete, setNewUserCanDelete] = useState<boolean>(false);
+  const [newUserConfiguracoes, setNewUserConfiguracoes] = useState<boolean>(false);
   const [userError, setUserError] = useState('');
 
   const isSuperAdmin = currentUser?.toLowerCase().trim() === 'admin';
@@ -49,12 +52,30 @@ export default function SettingsView({ customUsers, setCustomUsers, handleExport
       setUserError('Este usuário já existe.');
       return;
     }
-    setCustomUsers(prev => [...prev, { username: uClean, password: pClean, role: newUserRole, canDelete: newUserCanDelete }]);
+    setCustomUsers(prev => [...prev, { 
+      username: uClean, 
+      password: pClean, 
+      role: newUserRole, 
+      canDelete: newUserCanDelete,
+      configuracoes: newUserConfiguracoes 
+    }]);
     setNewUsername('');
     setNewPassword('');
     setNewUserRole('admin');
     setNewUserCanDelete(false);
-    alert(`Usuário "${uClean}" (${newUserRole === 'admin' ? 'Administrador' : 'Usuário'}, Exclusão: ${newUserCanDelete ? 'Permitida' : 'Bloqueada'}) criado com sucesso!`);
+    setNewUserConfiguracoes(false);
+    alert(`Usuário "${uClean}" (${newUserRole === 'admin' ? 'Administrador' : 'Usuário'}, Exclusão: ${newUserCanDelete ? 'Permitida' : 'Bloqueada'}, Configurações: ${newUserConfiguracoes ? 'Permitido' : 'Bloqueado'}) criado com sucesso!`);
+  };
+
+  const handleToggleConfiguracoes = (usernameToToggle: string, currentConfig: boolean | undefined) => {
+    if (usernameToToggle.toLowerCase() === 'admin') {
+      alert(`A conta do Super Administrador (Admin) possui acesso a configurações sempre ativado por padrão.`);
+      return;
+    }
+    const newConfig = currentConfig === true ? false : true;
+    if (confirm(`Deseja alterar a permissão de acesso a Configurações de "${usernameToToggle}" para ${newConfig ? 'PERMITIDO' : 'BLOQUEADO'}?`)) {
+      setCustomUsers(prev => prev.map(u => u.username.toLowerCase() === usernameToToggle.toLowerCase() ? { ...u, configuracoes: newConfig } : u));
+    }
   };
 
   const handleDeleteUser = (usernameToDelete: string) => {
@@ -216,6 +237,7 @@ export default function SettingsView({ customUsers, setCustomUsers, handleExport
               const isTargetSuperAdmin = user.username.toLowerCase() === 'admin';
               const isUserAdmin = isTargetSuperAdmin || user.role === 'admin';
               const canUserDelete = isTargetSuperAdmin || (user.role === 'admin' && user.canDelete !== false);
+              const hasConfigAccess = isTargetSuperAdmin || user.configuracoes === true;
               
               return (
                 <li key={user.username} className="flex flex-col md:flex-row md:items-center justify-between bg-slate-800 rounded px-3 py-2 gap-3">
@@ -224,6 +246,9 @@ export default function SettingsView({ customUsers, setCustomUsers, handleExport
                     <span className="text-sm capitalize font-bold">{user.username}</span>
                     <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full tracking-wider ${isTargetSuperAdmin ? 'bg-amber-500/20 text-amber-300' : isUserAdmin ? (canUserDelete ? 'bg-indigo-500/20 text-indigo-300' : 'bg-sky-500/20 text-sky-300') : 'bg-slate-700 text-slate-300'}`}>
                       {isTargetSuperAdmin ? 'SuperAdmin (Master)' : isUserAdmin ? (canUserDelete ? 'Admin (Com Exclusão)' : 'Admin (Sem Exclusão)') : 'Usuário Normal'}
+                    </span>
+                    <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full tracking-wider ${hasConfigAccess ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-slate-700 text-slate-400'}`}>
+                      Configurações: {hasConfigAccess ? 'SIM' : 'NÃO'}
                     </span>
                   </span>
                   <div className="flex items-center gap-3 self-end md:self-auto flex-wrap">
@@ -241,7 +266,7 @@ export default function SettingsView({ customUsers, setCustomUsers, handleExport
                         onClick={() => handleToggleRole(user.username, user.role)}
                         className="text-xs text-slate-400 hover:text-emerald-400 underline decoration-slate-600 underline-offset-2 transition-colors cursor-pointer"
                       >
-                        Mudar Permissão ({user.role === 'admin' ? 'Tornar Usuário' : 'Tornar Admin'})
+                        Mudar Perfil ({user.role === 'admin' ? 'Tornar Usuário' : 'Tornar Admin'})
                       </button>
                     )}
                     {!isTargetSuperAdmin && isSuperAdmin && (
@@ -250,6 +275,14 @@ export default function SettingsView({ customUsers, setCustomUsers, handleExport
                         className="text-xs text-amber-400 hover:text-amber-300 underline decoration-amber-600/50 underline-offset-2 transition-colors cursor-pointer"
                       >
                         {user.canDelete === false ? 'Permitir Exclusão' : 'Bloquear Exclusão'}
+                      </button>
+                    )}
+                    {!isTargetSuperAdmin && isSuperAdmin && (
+                      <button
+                        onClick={() => handleToggleConfiguracoes(user.username, user.configuracoes)}
+                        className="text-xs text-emerald-400 hover:text-emerald-300 underline decoration-emerald-600/50 underline-offset-2 transition-colors cursor-pointer"
+                      >
+                        {user.configuracoes === true ? 'Bloquear Config.' : 'Permitir Config.'}
                       </button>
                     )}
                     {!isTargetSuperAdmin && isSuperAdmin && (
@@ -267,8 +300,8 @@ export default function SettingsView({ customUsers, setCustomUsers, handleExport
             })}
           </ul>
           {/* Form to add new user */}
-          <form onSubmit={handleCreateUser} className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end bg-slate-800/50 p-4 rounded-lg border border-slate-700">
-            <div className="col-span-1">
+          <form onSubmit={handleCreateUser} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 items-end bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+            <div>
               <label className="block text-xs text-slate-400 mb-1 font-bold">Nome de usuário</label>
               <input
                 type="text"
@@ -279,7 +312,7 @@ export default function SettingsView({ customUsers, setCustomUsers, handleExport
                 required
               />
             </div>
-            <div className="col-span-1">
+            <div>
               <label className="block text-xs text-slate-400 mb-1 font-bold">Senha</label>
               <input
                 type="password"
@@ -290,7 +323,7 @@ export default function SettingsView({ customUsers, setCustomUsers, handleExport
                 required
               />
             </div>
-            <div className="col-span-1">
+            <div>
               <label className="block text-xs text-slate-400 mb-1 font-bold">Permissão de Perfil</label>
               <select
                 value={newUserRole}
@@ -301,7 +334,7 @@ export default function SettingsView({ customUsers, setCustomUsers, handleExport
                 <option value="user">Usuário Normal</option>
               </select>
             </div>
-            <div className="col-span-1">
+            <div>
               <label className="block text-xs text-slate-400 mb-1 font-bold">Permite Exclusão?</label>
               <select
                 value={newUserCanDelete ? 'sim' : 'nao'}
@@ -312,16 +345,27 @@ export default function SettingsView({ customUsers, setCustomUsers, handleExport
                 <option value="sim">SIM (Com Exclusão)</option>
               </select>
             </div>
-            <div className="col-span-1">
+            <div>
+              <label className="block text-xs text-slate-400 mb-1 font-bold">Acesso a Configurações?</label>
+              <select
+                value={newUserConfiguracoes ? 'sim' : 'nao'}
+                onChange={e => setNewUserConfiguracoes(e.target.value === 'sim')}
+                className="w-full p-2 bg-slate-900 border border-slate-700 rounded focus:outline-none focus:border-emerald-600 text-sm font-medium"
+              >
+                <option value="nao">NÃO (Acesso Bloqueado)</option>
+                <option value="sim">SIM (Acesso Permitido)</option>
+              </select>
+            </div>
+            <div className="sm:col-span-2 md:col-span-5">
               <button
                 type="submit"
-                className="w-full flex items-center justify-center gap-1 px-4 py-2 bg-emerald-600 font-bold text-white rounded hover:bg-emerald-700 transition cursor-pointer"
+                className="w-full flex items-center justify-center gap-1 px-4 py-2.5 bg-emerald-600 font-bold text-white rounded hover:bg-emerald-700 transition cursor-pointer text-xs uppercase tracking-wider"
               >
                 <Plus className="w-4 h-4" /> Criar Usuário
               </button>
             </div>
             {userError && (
-              <p className="col-span-1 md:col-span-5 text-xs font-bold text-red-400 mt-1">{userError}</p>
+              <p className="col-span-1 sm:col-span-2 md:col-span-5 text-xs font-bold text-red-400 mt-1">{userError}</p>
             )}
           </form>
         </section>

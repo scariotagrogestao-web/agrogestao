@@ -10,6 +10,7 @@ interface HeaderProps {
   isAdmin: boolean;
   onLogout: () => void;
   currentUser?: string;
+  canAccessSettings?: boolean;
 }
 
 const menuItems = [
@@ -40,7 +41,8 @@ export default function Header({
   placeholder = "Buscar registros...",
   isAdmin,
   onLogout,
-  currentUser = 'Admin'
+  currentUser = 'Admin',
+  canAccessSettings = true
 }: HeaderProps) {
   return (
     <header className="h-[72px] bg-gradient-to-b from-slate-900 to-slate-950 border-b border-black flex justify-between items-center px-8 w-full sticky top-0 z-40 shadow-[0_4px_15px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.05)] shrink-0">
@@ -80,7 +82,7 @@ export default function Header({
       <div className="flex items-center gap-2 lg:gap-4">
         {/* Action icons */}
         <div className="flex items-center gap-1">
-          {isAdmin && (
+          {canAccessSettings && (
             <button 
               onClick={() => onNavigate('settings')}
               className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors relative border-none cursor-pointer ${

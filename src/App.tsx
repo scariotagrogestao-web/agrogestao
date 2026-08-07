@@ -109,6 +109,14 @@ export default function App() {
     return found?.role === 'admin';
   }, [currentUser, customUsers]);
 
+  const canAccessSettings = useMemo(() => {
+    if (!currentUser) return false;
+    const uLower = currentUser.toLowerCase().trim();
+    if (uLower === 'admin') return true;
+    const found = customUsers.find(u => u.username.toLowerCase() === uLower);
+    return found?.configuracoes === true;
+  }, [currentUser, customUsers]);
+
   const canCurrentUserDelete = useMemo(() => {
     if (!currentUser) return false;
     const uLower = currentUser.toLowerCase().trim();
@@ -192,12 +200,12 @@ export default function App() {
     });
   }, [setCustomUsers]);
 
-  // Security guard for non-admin settings access
+  // Security guard for non-authorized settings access
   useEffect(() => {
-    if (!isCurrentUserAdmin && (currentView === 'settings' || currentView === 'history')) {
+    if (!canAccessSettings && (currentView === 'settings' || currentView === 'history')) {
       setCurrentView('dashboard');
     }
-  }, [isCurrentUserAdmin, currentView]);
+  }, [canAccessSettings, currentView]);
 
   const addAuditLog = (action: string, details: string, overrideUser?: string) => {
     const newLog: AuditLog = {
@@ -948,6 +956,7 @@ export default function App() {
         onNavigate={handleAttemptNavigate}
         placeholder={currentView === 'expenses' ? "Filtrar por despesa ou motorista..." : "Buscar nos registros..."}
         isAdmin={isCurrentUserAdmin}
+        canAccessSettings={canAccessSettings}
         onLogout={handleLogout}
         currentUser={currentUser}
       />
@@ -1051,6 +1060,7 @@ export default function App() {
             canDelete={canCurrentUserDelete}
             auditLogs={auditLogs}
             currentUser={currentUser}
+            canAccessSettings={canAccessSettings}
           />
         )}
       </main>
