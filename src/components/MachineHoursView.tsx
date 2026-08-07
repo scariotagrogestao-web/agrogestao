@@ -48,7 +48,9 @@ export default function MachineHoursView({
   onAddLocality,
   onDeleteLocality,
   onAddDate,
-  onExport 
+  onExport,
+  onHasUnsavedChangesChange,
+  registerSaveHandler
 }: MachineHoursViewProps) {
   const [activeSheetId, setActiveSheetId] = useState<string>('guaraci-fr700');
   const [isCompact, setIsCompact] = useState<boolean>(false);
