@@ -9,10 +9,14 @@ import {
   X, 
   Check, 
   Search,
-  AlertTriangle 
+  AlertTriangle,
+  FileText,
+  FileSpreadsheet,
+  Download
 } from 'lucide-react';
 import { ClientOrVehicle } from '../types';
 import { Area, Motorista } from '../types/agro';
+import { exportToCSV, exportToXLSX, exportToPDF } from '../utils/exportHelpers';
 
 interface RegistriesViewProps {
   clientsAndVehicles: ClientOrVehicle[];
@@ -211,6 +215,82 @@ export default function RegistriesView({
     m.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const formatBRL = (val: number) => val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+  const handleExportPDF = () => {
+    let title = "RELATÓRIO DE CADASTROS";
+    let headers: string[] = [];
+    let rows: (string | number)[][] = [];
+
+    if (activeSubTab === 'vehicles') {
+      title = "CADASTRO DE VEÍCULOS E MÁQUINAS";
+      headers = ['Nome', 'Tipo / Categoria', 'Identificação / Frota', 'Responsável / Operador', 'Tarifa (R$/h)'];
+      rows = filteredVehicles.map(v => [v.name, v.type, v.plateOrFleet || '-', v.responsible || '-', formatBRL(v.rate || 0)]);
+    } else if (activeSubTab === 'areas') {
+      title = "CADASTRO DE FAZENDAS E ÁREAS";
+      headers = ['Nome da Fazenda', 'Cultura Plantada', 'Tamanho (ha)'];
+      rows = filteredAreas.map(a => [a.name, a.culture, a.sizeHectares.toLocaleString('pt-BR')]);
+    } else if (activeSubTab === 'drivers') {
+      title = "CADASTRO DE MOTORISTAS E OPERADORES";
+      headers = ['Nome', 'Taxa (R$/ha)', 'Status'];
+      rows = filteredDrivers.map(d => [d.name, formatBRL(d.ratePerHectare), d.status]);
+    }
+
+    exportToPDF(title, headers, rows, `cadastros_${activeSubTab}_${Date.now()}`);
+  };
+
+  const handleExportXLSX = () => {
+    let data: Record<string, any>[] = [];
+    if (activeSubTab === 'vehicles') {
+      data = filteredVehicles.map(v => ({
+        Nome: v.name,
+        'Tipo / Categoria': v.type,
+        'Identificação / Frota': v.plateOrFleet || '-',
+        'Responsável / Operador': v.responsible || '-',
+        'Tarifa (R$/h)': v.rate || 0
+      }));
+    } else if (activeSubTab === 'areas') {
+      data = filteredAreas.map(a => ({
+        'Nome da Fazenda': a.name,
+        'Cultura Plantada': a.culture,
+        'Tamanho (ha)': a.sizeHectares
+      }));
+    } else if (activeSubTab === 'drivers') {
+      data = filteredDrivers.map(d => ({
+        Nome: d.name,
+        'Taxa (R$/ha)': d.ratePerHectare,
+        Status: d.status
+      }));
+    }
+    exportToXLSX(data, `cadastros_${activeSubTab}_${Date.now()}`, activeSubTab.toUpperCase());
+  };
+
+  const handleExportCSVInternal = () => {
+    let data: Record<string, any>[] = [];
+    if (activeSubTab === 'vehicles') {
+      data = filteredVehicles.map(v => ({
+        Nome: v.name,
+        'Tipo / Categoria': v.type,
+        'Identificação / Frota': v.plateOrFleet || '-',
+        'Responsável / Operador': v.responsible || '-',
+        'Tarifa (R$/h)': v.rate || 0
+      }));
+    } else if (activeSubTab === 'areas') {
+      data = filteredAreas.map(a => ({
+        'Nome da Fazenda': a.name,
+        'Cultura Plantada': a.culture,
+        'Tamanho (ha)': a.sizeHectares
+      }));
+    } else if (activeSubTab === 'drivers') {
+      data = filteredDrivers.map(d => ({
+        Nome: d.name,
+        'Taxa (R$/ha)': d.ratePerHectare,
+        Status: d.status
+      }));
+    }
+    exportToCSV(data, `cadastros_${activeSubTab}_${Date.now()}`);
+  };
+
   return (
     <div className="flex flex-col gap-6 fade-in">
       
@@ -220,13 +300,42 @@ export default function RegistriesView({
           <h2 className="text-xl font-bold text-slate-800">Painel de Cadastros Gerais</h2>
           <p className="text-xs text-slate-500 mt-1">Gerencie a frota de maquinários, fazendas de atuação e equipes de operadores.</p>
         </div>
-        <button
-          onClick={openAddModal}
-          className="bg-[#002046] hover:bg-[#0f3a6a] text-white font-bold text-xs uppercase tracking-wider px-4 py-2.5 rounded-lg shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Novo Registro</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={openAddModal}
+            className="bg-[#002046] hover:bg-[#0f3a6a] text-white font-bold text-xs uppercase tracking-wider px-4 py-2.5 rounded-xl shadow-sm transition-all flex items-center gap-1.5 cursor-pointer mr-2"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Novo Registro</span>
+          </button>
+
+          <button 
+            onClick={handleExportPDF}
+            className="px-3.5 py-2 border border-red-200 bg-red-50 text-red-700 font-bold text-xs tracking-wider uppercase rounded-xl hover:bg-red-100 transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Exportar cadastros em PDF"
+          >
+            <FileText className="w-4 h-4 text-red-600" />
+            <span>.PDF</span>
+          </button>
+
+          <button 
+            onClick={handleExportXLSX}
+            className="px-3.5 py-2 border border-emerald-200 bg-emerald-50 text-emerald-700 font-bold text-xs tracking-wider uppercase rounded-xl hover:bg-emerald-100 transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Exportar planilha nativa Excel .XLSX"
+          >
+            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+            <span>.XLSX</span>
+          </button>
+
+          <button 
+            onClick={handleExportCSVInternal}
+            className="px-3.5 py-2 border border-slate-300 bg-white text-slate-700 font-bold text-xs tracking-wider uppercase rounded-xl hover:bg-slate-50 transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Exportar dados estruturados em CSV"
+          >
+            <Download className="w-4 h-4 text-slate-500" />
+            <span>.CSV</span>
+          </button>
+        </div>
       </div>
 
       {/* Sub Tabs Selector */}

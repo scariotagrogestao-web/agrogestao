@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react';
-import { Landmark, Scale, Crop, TrendingUp, DollarSign } from 'lucide-react';
+import { Landmark, Scale, Crop, TrendingUp, DollarSign, FileText, FileSpreadsheet, Download } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { Producao, Area } from '../types/agro';
+import { exportToCSV, exportToXLSX, exportToPDF } from '../utils/exportHelpers';
 
 interface DashboardSafraViewProps {
   producoes: Producao[];
@@ -42,44 +43,98 @@ export default function DashboardSafraView({
     };
   }, [producoes]);
 
-  // 2. Chart Data: Aggregated Tons per Area
-  const chartData = useMemo(() => {
-    const areaMap: Record<string, { name: string; culture: string; toneladas: number; hectares: number }> = {};
+  // 2. Production grouped by Area
+  const areaChartData = useMemo(() => {
+    const areaMap: Record<string, { name: string; toneladas: number; hectares: number }> = {};
     
-    // Initialize map with all areas
-    areas.forEach(a => {
-      areaMap[a.id] = { name: a.name, culture: a.culture, toneladas: 0, hectares: 0 };
-    });
-
-    // Populate with production data
     producoes.forEach(p => {
-      if (areaMap[p.areaId]) {
-        areaMap[p.areaId].toneladas += p.toneladas;
-        areaMap[p.areaId].hectares += p.hectares;
+      const areaName = areas.find(a => a.id === p.areaId)?.name || p.areaId || 'Área Geral';
+      if (!areaMap[areaName]) {
+        areaMap[areaName] = { name: areaName, toneladas: 0, hectares: 0 };
       }
+      areaMap[areaName].toneladas += p.toneladas;
+      areaMap[areaName].hectares += p.hectares;
     });
 
-    return Object.entries(areaMap)
-      .map(([id, val]) => ({
-        id,
-        name: val.name,
-        culture: val.culture,
-        toneladas: parseFloat(val.toneladas.toFixed(2)),
-        hectares: parseFloat(val.hectares.toFixed(2)),
-        yield: val.hectares > 0 ? parseFloat((val.toneladas / val.hectares).toFixed(2)) : 0
+    return Object.values(areaMap)
+      .map(item => ({
+        ...item,
+        rendimento: item.hectares > 0 ? parseFloat((item.toneladas / item.hectares).toFixed(2)) : 0
       }))
       .sort((a, b) => b.toneladas - a.toneladas);
   }, [producoes, areas]);
 
+  const chartData = areaChartData;
+
   const colors = ['#047857', '#059669', '#10b981', '#34d399', '#6ee7b7'];
+
+  const handleExportPDF = () => {
+    const headers = ['Área / Fazenda', 'Hectares (ha)', 'Toneladas (t)', 'Rendimento Média (t/ha)'];
+    const rows = areaChartData.map(a => [
+      a.name,
+      a.hectares.toLocaleString('pt-BR'),
+      a.toneladas.toLocaleString('pt-BR'),
+      a.rendimento.toLocaleString('pt-BR', { minimumFractionDigits: 1 })
+    ]);
+    exportToPDF('MÉTRICAS DE SAFRA E PRODUÇÃO POR FAZENDA', headers, rows, `metricas_safra_${Date.now()}`);
+  };
+
+  const handleExportXLSX = () => {
+    const data = areaChartData.map(a => ({
+      'Área / Fazenda': a.name,
+      'Hectares (ha)': a.hectares,
+      'Toneladas Colhidas (t)': a.toneladas,
+      'Rendimento Média (t/ha)': a.rendimento
+    }));
+    exportToXLSX(data, `metricas_safra_${Date.now()}`, 'Métricas Safra');
+  };
+
+  const handleExportCSVInternal = () => {
+    const data = areaChartData.map(a => ({
+      'Área / Fazenda': a.name,
+      'Hectares (ha)': a.hectares,
+      'Toneladas Colhidas (t)': a.toneladas,
+      'Rendimento Média (t/ha)': a.rendimento
+    }));
+    exportToCSV(data, `metricas_safra_${Date.now()}`);
+  };
 
   return (
     <div className="flex flex-col gap-6 fade-in">
-      {/* Page Title */}
-      <div className="page-title shrink-0">
+      {/* Page Title & Export Options */}
+      <div className="flex flex-col sm:flex-row justify-between sm:items-end gap-4 shrink-0 bg-white/50 p-4 rounded-2xl border border-white backdrop-blur shadow-sm">
         <div>
-          <h2 className="text-xl font-bold text-slate-800">Painel Geral de Produtividade</h2>
-          <p className="text-xs text-slate-500 mt-1">Consolidação em tempo real da colheita e rendimento da safra atual.</p>
+          <h2 className="text-2xl font-black text-slate-800 bg-clip-text text-transparent bg-gradient-to-r from-[#002046] to-emerald-600">Métricas de Safra e Produtividade</h2>
+          <p className="text-sm text-slate-500 mt-1 font-medium">Consolidação em tempo real da colheita e rendimento da safra atual.</p>
+        </div>
+
+        <div className="flex flex-wrap gap-2 items-center">
+          <button 
+            onClick={handleExportPDF}
+            className="px-3.5 py-2 border border-red-200 bg-red-50 text-red-700 font-bold text-xs tracking-wider uppercase rounded-xl hover:bg-red-100 transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Exportar documento em formato PDF"
+          >
+            <FileText className="w-4 h-4 text-red-600" />
+            <span>.PDF</span>
+          </button>
+          
+          <button 
+            onClick={handleExportXLSX}
+            className="px-3.5 py-2 border border-emerald-200 bg-emerald-50 text-emerald-700 font-bold text-xs tracking-wider uppercase rounded-xl hover:bg-emerald-100 transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Exportar planilha nativa Excel .XLSX"
+          >
+            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+            <span>.XLSX</span>
+          </button>
+
+          <button 
+            onClick={handleExportCSVInternal}
+            className="px-3.5 py-2 border border-slate-300 bg-white text-slate-700 font-bold text-xs tracking-wider uppercase rounded-xl hover:bg-slate-50 transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Exportar dados estruturados em CSV"
+          >
+            <Download className="w-4 h-4 text-slate-500" />
+            <span>.CSV</span>
+          </button>
         </div>
       </div>
 

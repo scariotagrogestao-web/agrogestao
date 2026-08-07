@@ -11,12 +11,12 @@ import {
   ChevronRight, 
   TrendingUp, 
   AlertCircle,
-  FileText
+  FileText,
+  FileSpreadsheet
 } from 'lucide-react';
 import { Expense, ClientOrVehicle } from '../types';
 import { getEntityColor } from '../utils/agroHelpers';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import { exportToCSV, exportToXLSX, exportToPDF } from '../utils/exportHelpers';
 
 interface ExpensesViewProps {
   expenses: Expense[];
@@ -340,30 +340,41 @@ export default function ExpensesView({
   };
 
   const handleExportPDF = () => {
-    const doc = new jsPDF();
-    doc.text("RELATÓRIO DE DESPESAS OPERACIONAIS", 14, 15);
-    
-    doc.setFontSize(10);
-    const filterText = `Filtros: ${typeFilter} | ${machineFilter} | ${driverFilter} | ${areaFilter}`;
-    doc.text(filterText, 14, 22);
-    
-    const tableData = filteredExpenses.map(exp => {
-      return [
-        formatDateToDisplay(exp.date),
-        exp.type.toUpperCase(),
-        exp.machineName || '-',
-        exp.responsibleName || '-',
-        exp.value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
-      ];
-    });
+    const title = "RELATÓRIO DE DESPESAS OPERACIONAIS";
+    const headers = ['Data', 'Tipo de Gasto', 'Máquina / Veículo', 'Responsável', 'Área / Fazenda', 'Valor'];
+    const rows = filteredExpenses.map(exp => [
+      formatDateToDisplay(exp.date),
+      exp.type.toUpperCase(),
+      exp.machineName || '-',
+      exp.responsibleName || '-',
+      exp.areaName || '-',
+      formatBRL(exp.value)
+    ]);
+    exportToPDF(title, headers, rows, `relatorio_despesas_${Date.now()}`);
+  };
 
-    autoTable(doc, {
-      startY: 28,
-      head: [['Data', 'Tipo', 'Máquina/Veículo', 'Responsável', 'Valor']],
-      body: tableData,
-    });
-    
-    doc.save(`relatorio_despesas_${Date.now()}.pdf`);
+  const handleExportXLSX = () => {
+    const data = filteredExpenses.map(exp => ({
+      Data: formatDateToDisplay(exp.date),
+      'Tipo de Gasto': exp.type,
+      'Máquina / Veículo': exp.machineName || '-',
+      'Responsável': exp.responsibleName || '-',
+      'Área / Fazenda': exp.areaName || '-',
+      'Valor (R$)': exp.value
+    }));
+    exportToXLSX(data, `relatorio_despesas_${Date.now()}`, 'Despesas');
+  };
+
+  const handleExportCSVInternal = () => {
+    const data = filteredExpenses.map(exp => ({
+      Data: formatDateToDisplay(exp.date),
+      'Tipo de Gasto': exp.type,
+      'Máquina / Veículo': exp.machineName || '-',
+      'Responsável': exp.responsibleName || '-',
+      'Área / Fazenda': exp.areaName || '-',
+      'Valor (R$)': exp.value
+    }));
+    exportToCSV(data, `relatorio_despesas_${Date.now()}`);
   };
 
   return (
@@ -374,21 +385,32 @@ export default function ExpensesView({
           <h1 className="font-display text-3xl font-bold text-[#002046] mb-2">Controle de Gastos</h1>
           <p className="text-sm text-slate-500">Gerencie e analise as despesas operacionais.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button 
             onClick={handleExportPDF}
-            className="flex items-center gap-2 px-4 py-2 border border-red-200 bg-red-50 text-red-700 font-semibold text-xs tracking-wider uppercase rounded-lg hover:bg-red-100 transition-colors shadow-xs cursor-pointer"
-            title="Gerar PDF"
+            className="flex items-center gap-2 px-3.5 py-2 border border-red-200 bg-red-50 text-red-700 font-bold text-xs tracking-wider uppercase rounded-xl hover:bg-red-100 transition-colors shadow-xs cursor-pointer"
+            title="Gerar relatório em formato PDF"
           >
-            <FileText className="w-4 h-4 text-red-500" />
-            <span>Gerar PDF</span>
+            <FileText className="w-4 h-4 text-red-600" />
+            <span>Gerar .PDF</span>
           </button>
+          
           <button 
-            onClick={onExport}
-            className="flex items-center gap-2 px-4 py-2 border border-slate-300 bg-white text-[#002046] font-semibold text-xs tracking-wider uppercase rounded-lg hover:bg-slate-50 transition-colors shadow-xs cursor-pointer"
+            onClick={handleExportXLSX}
+            className="flex items-center gap-2 px-3.5 py-2 border border-emerald-200 bg-emerald-50 text-emerald-700 font-bold text-xs tracking-wider uppercase rounded-xl hover:bg-emerald-100 transition-colors shadow-xs cursor-pointer"
+            title="Exportar planilha nativa Excel .XLSX"
+          >
+            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+            <span>Exportar .XLSX</span>
+          </button>
+
+          <button 
+            onClick={handleExportCSVInternal}
+            className="flex items-center gap-2 px-3.5 py-2 border border-slate-300 bg-white text-slate-700 font-bold text-xs tracking-wider uppercase rounded-xl hover:bg-slate-50 transition-colors shadow-xs cursor-pointer"
+            title="Exportar dados estruturados em CSV"
           >
             <Download className="w-4 h-4 text-slate-500" />
-            <span>Exportar CSV</span>
+            <span>Exportar .CSV</span>
           </button>
         </div>
       </div>

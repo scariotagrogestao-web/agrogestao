@@ -16,10 +16,13 @@ import {
   CheckSquare,
   Square,
   X,
-  AlertCircle
+  AlertCircle,
+  FileText,
+  FileSpreadsheet
 } from 'lucide-react';
 import { LocalitySheet, MachineConfig, HourlyReading, ClientOrVehicle } from '../types';
 import { isTruckVehicle } from '../utils/agroHelpers';
+import { exportToCSV, exportToXLSX, exportToPDF } from '../utils/exportHelpers';
 
 interface MachineHoursViewProps {
   localitySheets: LocalitySheet[];
@@ -437,12 +440,72 @@ export default function MachineHoursView({
     }
   };
 
-  // Format currency helper
-  const formatBRL = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value);
+  const handleExportPDF = () => {
+    const headers = ['Localidade / Fazenda', 'Máquina / Veículo', 'Tarifa (R$/h)', 'Total Horas', 'Custo Total (R$)'];
+    const rows: (string | number)[][] = [];
+
+    localitySheets.forEach(sheet => {
+      if (activeSheetId !== 'all' && sheet.id !== activeSheetId) return;
+      sheet.machines.forEach(m => {
+        let totalH = 0;
+        Object.values(m.readings).forEach((r: HourlyReading) => {
+          totalH += calculateHours(r.initial, r.final);
+        });
+        rows.push([
+          sheet.name,
+          m.name,
+          formatBRL(m.ratePerHour),
+          totalH.toLocaleString('pt-BR', { minimumFractionDigits: 1 }),
+          formatBRL(totalH * m.ratePerHour)
+        ]);
+      });
+    });
+
+    exportToPDF(`RELATÓRIO DE HORAS-MÁQUINA (${activeSheet.name.toUpperCase()})`, headers, rows, `horas_maquinas_${Date.now()}`);
+  };
+
+  const handleExportXLSX = () => {
+    const data: Record<string, any>[] = [];
+    localitySheets.forEach(sheet => {
+      if (activeSheetId !== 'all' && sheet.id !== activeSheetId) return;
+      sheet.machines.forEach(m => {
+        let totalH = 0;
+        Object.values(m.readings).forEach((r: HourlyReading) => {
+          totalH += calculateHours(r.initial, r.final);
+        });
+        data.push({
+          'Localidade / Fazenda': sheet.name,
+          'Máquina / Veículo': m.name,
+          'Tarifa (R$/h)': m.ratePerHour,
+          'Total Horas Trabalhadas': totalH,
+          'Custo Total (R$)': totalH * m.ratePerHour
+        });
+      });
+    });
+
+    exportToXLSX(data, `horas_maquinas_${Date.now()}`, 'Horas Máquinas');
+  };
+
+  const handleExportCSVInternal = () => {
+    const data: Record<string, any>[] = [];
+    localitySheets.forEach(sheet => {
+      if (activeSheetId !== 'all' && sheet.id !== activeSheetId) return;
+      sheet.machines.forEach(m => {
+        let totalH = 0;
+        Object.values(m.readings).forEach((r: HourlyReading) => {
+          totalH += calculateHours(r.initial, r.final);
+        });
+        data.push({
+          'Localidade / Fazenda': sheet.name,
+          'Máquina / Veículo': m.name,
+          'Tarifa (R$/h)': m.ratePerHour,
+          'Total Horas Trabalhadas': totalH,
+          'Custo Total (R$)': totalH * m.ratePerHour
+        });
+      });
+    });
+
+    exportToCSV(data, `horas_maquinas_${Date.now()}`);
   };
 
   return (
@@ -455,7 +518,7 @@ export default function MachineHoursView({
             Registro diário de horímetros e cálculo de custos por localidade.
           </p>
         </div>
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-2 items-center">
           <button 
             onClick={() => {
               setQuickDate(new Date().toISOString().split('T')[0]);
@@ -466,17 +529,37 @@ export default function MachineHoursView({
               setQuickError('');
               setIsQuickLaunchOpen(true);
             }}
-            className="px-4 py-2 bg-[#0c4a23] text-white font-bold text-xs tracking-wider uppercase rounded-lg hover:bg-[#15803d] transition-all flex items-center gap-2 cursor-pointer shadow-sm"
+            className="px-3.5 py-2 bg-[#0c4a23] text-white font-bold text-xs tracking-wider uppercase rounded-xl hover:bg-[#15803d] transition-all flex items-center gap-2 cursor-pointer shadow-sm"
           >
             <Zap className="w-4 h-4 text-amber-300" />
             <span>+ Lançamento Rápido</span>
           </button>
+
           <button 
-            onClick={onExport}
-            className="px-4 py-2 border border-slate-300 text-[#002046] font-semibold text-xs tracking-wider uppercase rounded-lg hover:bg-slate-100 transition-colors flex items-center gap-2 cursor-pointer bg-white shadow-xs"
+            onClick={handleExportPDF}
+            className="px-3 py-2 border border-red-200 bg-red-50 text-red-700 font-bold text-xs tracking-wider uppercase rounded-xl hover:bg-red-100 transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Exportar relatório em PDF"
+          >
+            <FileText className="w-4 h-4 text-red-600" />
+            <span>.PDF</span>
+          </button>
+
+          <button 
+            onClick={handleExportXLSX}
+            className="px-3 py-2 border border-emerald-200 bg-emerald-50 text-emerald-700 font-bold text-xs tracking-wider uppercase rounded-xl hover:bg-emerald-100 transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Exportar planilha nativa Excel .XLSX"
+          >
+            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+            <span>.XLSX</span>
+          </button>
+
+          <button 
+            onClick={handleExportCSVInternal}
+            className="px-3 py-2 border border-slate-300 bg-white text-slate-700 font-bold text-xs tracking-wider uppercase rounded-xl hover:bg-slate-50 transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Exportar dados estruturados em CSV"
           >
             <Download className="w-4 h-4 text-slate-500" />
-            <span>Exportar Relatório</span>
+            <span>.CSV</span>
           </button>
           <button 
             onClick={() => setIsAddDateOpen(true)}

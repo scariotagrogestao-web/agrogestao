@@ -1,10 +1,9 @@
 import React, { useState, useMemo } from 'react';
-import { Filter, Calendar, Tractor, User, Landmark, DollarSign, Scale, Crop, TrendingUp, Download, FileText, Truck, Layers, AlertCircle } from 'lucide-react';
+import { Filter, Calendar, Tractor, User, Landmark, DollarSign, Scale, Crop, TrendingUp, Download, FileText, Truck, Layers, AlertCircle, FileSpreadsheet } from 'lucide-react';
 import { Producao, Area, Maquina, Motorista } from '../types/agro';
 import { LocalitySheet, ClientOrVehicle } from '../types';
 import { getEntityColor, getDriverForMachine, isTruckVehicle, calculateHours } from '../utils/agroHelpers';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import { exportToCSV, exportToXLSX, exportToPDF } from '../utils/exportHelpers';
 
 interface PagamentoReportViewProps {
   producoes: Producao[];
@@ -292,51 +291,91 @@ export default function PagamentoReportView({
   const formatBRL = (val: number) => val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
   // ==========================================
-  // EXPORT FUNCTIONS
+  // EXPORT FUNCTIONS (PDF / XLSX / CSV)
   // ==========================================
   const handleExportCSV = (type: 'producao' | 'maquina' | 'caminhao') => {
-    const csvRows = [];
-    csvRows.push(`### RELATORIO DE ${type.toUpperCase()} ###`);
-    csvRows.push(`Exportado em:;${new Date().toLocaleString('pt-BR')}`);
-    csvRows.push("");
-
     if (type === 'producao') {
-      csvRows.push("Semana;Data;Area/Fazenda;Maquina;Motorista;Hectares (ha);Toneladas (t);Rendimento (t/ha);Tarifa (R$/ha);Pagamento (R$)");
-      filteredProducoes.forEach(p => {
+      const data = filteredProducoes.map(p => {
         const yieldRate = p.hectares > 0 ? p.toneladas / p.hectares : 0;
         const rate = getMotoristaRate(p.motoristaId);
         const payment = p.hectares * rate;
-        csvRows.push(`"${p.semana}";"${p.date.split('-').reverse().join('/')}";"${getAreaName(p.areaId)}";"${getMaquinaName(p.maquinaId)}";"${getMotoristaName(p.motoristaId)}";${p.hectares.toLocaleString('pt-BR')};${p.toneladas.toLocaleString('pt-BR')};${yieldRate.toLocaleString('pt-BR')};${rate.toLocaleString('pt-BR')};${payment.toLocaleString('pt-BR')}`);
+        return {
+          Semana: p.semana,
+          Data: p.date.split('-').reverse().join('/'),
+          'Área / Fazenda': getAreaName(p.areaId),
+          Máquina: getMaquinaName(p.maquinaId),
+          Motorista: getMotoristaName(p.motoristaId),
+          'Hectares (ha)': p.hectares,
+          'Toneladas (t)': p.toneladas,
+          'Rendimento (t/ha)': parseFloat(yieldRate.toFixed(2)),
+          'Tarifa (R$/ha)': rate,
+          'Pagamento Total (R$)': payment
+        };
       });
+      exportToCSV(data, `relatorio_producao_${Date.now()}`);
     } else {
       const dataList = type === 'maquina' ? filteredMachineReadings : filteredTruckReadings;
-      csvRows.push("Data;Fazenda;Equipamento;Motorista/Operador;Hr. Inicial;Hr. Final;Total Horas;Tarifa (R$/h);Faturamento (R$)");
-      dataList.forEach(r => {
-        csvRows.push(`"${r.dateStr}";"${r.sheetName}";"${r.machineName}";"${r.driver}";"${r.initial}";"${r.final}";${r.hours.toLocaleString('pt-BR')};${r.ratePerHour.toLocaleString('pt-BR')};${r.revenue.toLocaleString('pt-BR')}`);
-      });
+      const data = dataList.map(r => ({
+        Data: r.dateStr,
+        Fazenda: r.sheetName,
+        Equipamento: r.machineName,
+        'Motorista / Operador': r.driver,
+        'Hr. Inicial': r.initial,
+        'Hr. Final': r.final,
+        'Horas Trabalhadas': r.hours,
+        'Tarifa (R$/h)': r.ratePerHour,
+        'Faturamento (R$)': r.revenue
+      }));
+      exportToCSV(data, `relatorio_${type}_${Date.now()}`);
     }
+  };
 
-    const csvContent = "\uFEFF" + csvRows.join("\n");
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", `relatorio_${type}_${Date.now()}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleExportXLSX = (type: 'producao' | 'maquina' | 'caminhao') => {
+    if (type === 'producao') {
+      const data = filteredProducoes.map(p => {
+        const yieldRate = p.hectares > 0 ? p.toneladas / p.hectares : 0;
+        const rate = getMotoristaRate(p.motoristaId);
+        const payment = p.hectares * rate;
+        return {
+          Semana: p.semana,
+          Data: p.date.split('-').reverse().join('/'),
+          'Área / Fazenda': getAreaName(p.areaId),
+          Máquina: getMaquinaName(p.maquinaId),
+          Motorista: getMotoristaName(p.motoristaId),
+          'Hectares (ha)': p.hectares,
+          'Toneladas (t)': p.toneladas,
+          'Rendimento (t/ha)': parseFloat(yieldRate.toFixed(2)),
+          'Tarifa (R$/ha)': rate,
+          'Pagamento Total (R$)': payment
+        };
+      });
+      exportToXLSX(data, `relatorio_producao_${Date.now()}`, 'Produção');
+    } else {
+      const dataList = type === 'maquina' ? filteredMachineReadings : filteredTruckReadings;
+      const data = dataList.map(r => ({
+        Data: r.dateStr,
+        Fazenda: r.sheetName,
+        Equipamento: r.machineName,
+        'Motorista / Operador': r.driver,
+        'Hr. Inicial': r.initial,
+        'Hr. Final': r.final,
+        'Horas Trabalhadas': r.hours,
+        'Tarifa (R$/h)': r.ratePerHour,
+        'Faturamento (R$)': r.revenue
+      }));
+      exportToXLSX(data, `relatorio_${type}_${Date.now()}`, type === 'maquina' ? 'Máquinas' : 'Caminhões');
+    }
   };
 
   const handleExportPDF = (type: 'producao' | 'maquina' | 'caminhao') => {
-    const doc = new jsPDF();
     let title = "RELATÓRIO";
-    let head: any[] = [];
-    let tableData: any[] = [];
+    let headers: string[] = [];
+    let rows: (string | number)[][] = [];
 
     if (type === 'producao') {
-      title = "RELATÓRIO DE PAGAMENTO E PRODUÇÃO";
-      head = [['Data', 'Área', 'Motorista', 'Hectares', 'Toneladas', 'Pagamento']];
-      tableData = filteredProducoes.map(p => {
+      title = "RELATÓRIO DE PAGAMENTO E PRODUÇÃO DE SILAGEM";
+      headers = ['Data', 'Área / Fazenda', 'Motorista', 'Hectares (ha)', 'Toneladas (t)', 'Pagamento Total'];
+      rows = filteredProducoes.map(p => {
         const rate = getMotoristaRate(p.motoristaId);
         return [
           p.date.split('-').reverse().join('/'),
@@ -344,31 +383,26 @@ export default function PagamentoReportView({
           getMotoristaName(p.motoristaId),
           p.hectares.toLocaleString('pt-BR'),
           p.toneladas.toLocaleString('pt-BR'),
-          (p.hectares * rate).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+          formatBRL(p.hectares * rate)
         ];
       });
     } else {
-      title = type === 'maquina' ? "RELATÓRIO DE HORAS: MÁQUINAS" : "RELATÓRIO DE HORAS: CAMINHÕES";
+      title = type === 'maquina' ? "RELATÓRIO DE HORAS E APONTAMENTOS DE MÁQUINAS" : "RELATÓRIO DE FRETES E HORAS DE CAMINHÕES";
       const dataList = type === 'maquina' ? filteredMachineReadings : filteredTruckReadings;
-      head = [['Data', 'Fazenda', 'Equipamento', 'Hr. Inic.', 'Hr. Final', 'Total Hrs', 'Faturamento']];
-      tableData = dataList.map(r => [
+      headers = ['Data', 'Fazenda', 'Equipamento', 'Operador', 'Hr. Inic.', 'Hr. Final', 'Hrs Trab.', 'Faturamento'];
+      rows = dataList.map(r => [
         r.dateStr,
         r.sheetName,
         r.machineName,
+        r.driver,
         r.initial,
         r.final,
-        r.hours.toLocaleString('pt-BR'),
-        r.revenue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+        r.hours.toLocaleString('pt-BR', { minimumFractionDigits: 1 }),
+        formatBRL(r.revenue)
       ]);
     }
 
-    doc.text(title, 14, 15);
-    autoTable(doc, {
-      startY: 22,
-      head: head,
-      body: tableData,
-    });
-    doc.save(`relatorio_${type}_${Date.now()}.pdf`);
+    exportToPDF(title, headers, rows, `relatorio_${type}_${Date.now()}`);
   };
 
   return (
@@ -377,7 +411,7 @@ export default function PagamentoReportView({
       <div className="flex flex-col sm:flex-row justify-between sm:items-end gap-4 shrink-0 bg-white/50 p-4 rounded-2xl border border-white backdrop-blur shadow-sm">
         <div>
           <h2 className="text-2xl font-black text-slate-800 bg-clip-text text-transparent bg-gradient-to-r from-[#002046] to-emerald-600">Central de Relatórios e Exportação</h2>
-          <p className="text-sm text-slate-500 mt-1 font-medium">Consolidação de dados para análises, fechamentos e exportação (PDF/Excel).</p>
+          <p className="text-sm text-slate-500 mt-1 font-medium">Consolidação de dados para análises, fechamentos e exportação (.PDF / .XLSX / .CSV).</p>
         </div>
         
         <div className="flex bg-slate-100 p-1 rounded-xl shadow-inner overflow-hidden">
@@ -405,20 +439,33 @@ export default function PagamentoReportView({
         </div>
       </div>
 
-      <div className="flex gap-2 justify-end">
+      <div className="flex flex-wrap gap-2 justify-end items-center">
+        <span className="text-[10px] uppercase font-bold text-slate-400 mr-2">Exportar Relatório ({activeTab}):</span>
         <button
           onClick={() => handleExportPDF(activeTab)}
-          className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold text-xs uppercase tracking-wider px-4 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer border-none"
+          className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold text-xs uppercase tracking-wider px-3.5 py-2 rounded-xl shadow-md hover:shadow-lg transition-all flex items-center gap-1.5 cursor-pointer border-none"
+          title="Exportar documento em formato PDF"
         >
           <FileText className="w-4 h-4" />
-          <span>Gerar PDF ({activeTab})</span>
+          <span>Gerar .PDF</span>
         </button>
+
+        <button
+          onClick={() => handleExportXLSX(activeTab)}
+          className="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-bold text-xs uppercase tracking-wider px-3.5 py-2 rounded-xl shadow-md hover:shadow-lg transition-all flex items-center gap-1.5 cursor-pointer border-none"
+          title="Exportar planilha nativa Excel .XLSX"
+        >
+          <FileSpreadsheet className="w-4 h-4" />
+          <span>Exportar .XLSX</span>
+        </button>
+
         <button
           onClick={() => handleExportCSV(activeTab)}
-          className="bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white font-bold text-xs uppercase tracking-wider px-4 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer border-none"
+          className="bg-gradient-to-r from-slate-700 to-slate-800 hover:from-slate-800 hover:to-slate-900 text-white font-bold text-xs uppercase tracking-wider px-3.5 py-2 rounded-xl shadow-md hover:shadow-lg transition-all flex items-center gap-1.5 cursor-pointer border-none"
+          title="Exportar dados estruturados em CSV"
         >
           <Download className="w-4 h-4" />
-          <span>Exportar CSV ({activeTab})</span>
+          <span>Exportar .CSV</span>
         </button>
       </div>
 

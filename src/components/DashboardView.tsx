@@ -12,7 +12,8 @@ import {
   Scale,
   Calendar,
   AlertCircle,
-  Filter
+  Filter,
+  FileSpreadsheet
 } from 'lucide-react';
 import { 
   BarChart, 
@@ -27,6 +28,7 @@ import {
 import { LocalitySheet, Expense, HourlyReading, ClientOrVehicle } from '../types';
 import { Producao, Motorista } from '../types/agro';
 import { calculateSilagemRevenue, calculateDriverCosts, isTruckVehicle } from '../utils/agroHelpers';
+import { exportToCSV, exportToXLSX, exportToPDF } from '../utils/exportHelpers';
 
 interface DashboardViewProps {
   localitySheets: LocalitySheet[];
@@ -365,42 +367,50 @@ export default function DashboardView({
     }).format(value);
   };
 
+  const handleExportDashboardPDF = () => {
+    const headers = ['Indicador / Métrica Operacional', 'Valor Calculado (no Período)'];
+    const rows = [
+      ['Horas Totais Trabalhadas', `${stats.totalHours.toLocaleString('pt-BR')} h`],
+      ['Horas Máquinas', `${stats.totalMachineHours.toLocaleString('pt-BR')} h`],
+      ['Horas Caminhões', `${stats.totalTruckHours.toLocaleString('pt-BR')} h`],
+      ['Receita Silagem', formatBRL(stats.silagemRevenue)],
+      ['Despesas Diretas', formatBRL(stats.directExpenses)],
+      ['Custos Operacionais Caminhões', formatBRL(stats.truckTotalCost)],
+      ['Pagamento Motoristas', formatBRL(stats.driverCosts)],
+      ['Custos Totais Operacionais', formatBRL(stats.totalCosts)],
+      ['Resultado Líquido Operacional', formatBRL(stats.netResult)]
+    ];
+    exportToPDF('RESUMO EXECUTIVO DO DASHBOARD OPERACIONAL', headers, rows, `dashboard_resumo_${Date.now()}`);
+  };
+
+  const handleExportDashboardXLSX = () => {
+    const data = [
+      { Indicador: 'Horas Totais Trabalhadas', Valor: `${stats.totalHours.toLocaleString('pt-BR')} h` },
+      { Indicador: 'Horas Máquinas', Valor: `${stats.totalMachineHours.toLocaleString('pt-BR')} h` },
+      { Indicador: 'Horas Caminhões', Valor: `${stats.totalTruckHours.toLocaleString('pt-BR')} h` },
+      { Indicador: 'Receita Silagem', Valor: formatBRL(stats.silagemRevenue) },
+      { Indicador: 'Despesas Diretas', Valor: formatBRL(stats.directExpenses) },
+      { Indicador: 'Custos Operacionais Caminhões', Valor: formatBRL(stats.truckTotalCost) },
+      { Indicador: 'Pagamento Motoristas', Valor: formatBRL(stats.driverCosts) },
+      { Indicador: 'Custos Totais Operacionais', Valor: formatBRL(stats.totalCosts) },
+      { Indicador: 'Resultado Líquido Operacional', Valor: formatBRL(stats.netResult) }
+    ];
+    exportToXLSX(data, `dashboard_resumo_${Date.now()}`, 'Dashboard');
+  };
+
   const handleExportDashboardCSV = () => {
-    const csvRows = [];
-    csvRows.push("### RELATORIO DE EXPORTACAO DO DASHBOARD OPERACIONAL ###");
-    csvRows.push(`Exportado em:;${new Date().toLocaleString('pt-BR')}`);
-    csvRows.push("");
-
-    csvRows.push("RESUMO FINANCEIRO GERAL");
-    csvRows.push(`Horas Totais Trabalhadas;${stats.totalHours.toLocaleString('pt-BR')} h`);
-    csvRows.push(`Faturamento Projetado;R$ ${stats.totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`);
-    csvRows.push(`Total de Despesas Lançadas;R$ ${expenseStats.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`);
-    csvRows.push(`Saldo Liquido Operacional;R$ ${(stats.totalRevenue - expenseStats.total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`);
-    csvRows.push("");
-
-    csvRows.push("HORAS POR LOCALIDADE / FAZENDA");
-    csvRows.push("Fazenda;Horas Trabalhadas;Percentual %");
-    stats.localityHoursList.forEach(l => {
-      const pct = stats.totalHours > 0 ? (l.hours / stats.totalHours) * 100 : 0;
-      csvRows.push(`"${l.name}";${l.hours.toLocaleString('pt-BR')};${pct.toFixed(1)}%`);
-    });
-    csvRows.push("");
-
-    csvRows.push("DESEMPENHO POR MAQUINA / VEICULO");
-    csvRows.push("Veículo/Máquina;Responsável;Horas Acumuladas;Tarifa R$/h;Total Acumulado R$");
-    stats.machineStatsList.forEach(m => {
-      csvRows.push(`"${m.name}";"${getDriverForMachine(m.name)}";${m.totalHours.toLocaleString('pt-BR')};${m.ratePerHour.toLocaleString('pt-BR')};${m.totalRevenue.toLocaleString('pt-BR')}`);
-    });
-
-    const csvContent = "\uFEFF" + csvRows.join("\n");
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", `dashboard_relatorio_${Date.now()}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const data = [
+      { Indicador: 'Horas Totais Trabalhadas', Valor: `${stats.totalHours.toLocaleString('pt-BR')} h` },
+      { Indicador: 'Horas Máquinas', Valor: `${stats.totalMachineHours.toLocaleString('pt-BR')} h` },
+      { Indicador: 'Horas Caminhões', Valor: `${stats.totalTruckHours.toLocaleString('pt-BR')} h` },
+      { Indicador: 'Receita Silagem', Valor: formatBRL(stats.silagemRevenue) },
+      { Indicador: 'Despesas Diretas', Valor: formatBRL(stats.directExpenses) },
+      { Indicador: 'Custos Operacionais Caminhões', Valor: formatBRL(stats.truckTotalCost) },
+      { Indicador: 'Pagamento Motoristas', Valor: formatBRL(stats.driverCosts) },
+      { Indicador: 'Custos Totais Operacionais', Valor: formatBRL(stats.totalCosts) },
+      { Indicador: 'Resultado Líquido Operacional', Valor: formatBRL(stats.netResult) }
+    ];
+    exportToCSV(data, `dashboard_resumo_${Date.now()}`);
   };
 
   const CustomTooltip = ({ active, payload, label }: any) => {
@@ -449,14 +459,32 @@ export default function DashboardView({
             Acompanhe o faturamento, despesas e a produtividade da frota.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2 items-center">
+          <button 
+            onClick={handleExportDashboardPDF}
+            className="px-3.5 py-2 border border-red-200 bg-red-50 text-red-700 font-bold text-xs tracking-wider uppercase rounded-xl hover:bg-red-100 transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Exportar resumo em PDF"
+          >
+            <FileText className="w-4 h-4 text-red-600" />
+            <span>.PDF</span>
+          </button>
+          
+          <button 
+            onClick={handleExportDashboardXLSX}
+            className="px-3.5 py-2 border border-emerald-200 bg-emerald-50 text-emerald-700 font-bold text-xs tracking-wider uppercase rounded-xl hover:bg-emerald-100 transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Exportar planilha nativa Excel .XLSX"
+          >
+            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+            <span>.XLSX</span>
+          </button>
+
           <button 
             onClick={handleExportDashboardCSV}
-            className="px-5 py-2.5 bg-gradient-to-r from-[#002046] to-slate-800 hover:from-slate-800 hover:to-slate-900 text-white font-sans text-xs tracking-wider uppercase font-bold rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all flex items-center gap-2 cursor-pointer border-none"
-            title="Exportar dados resumidos do Dashboard para Excel/CSV"
+            className="px-3.5 py-2 border border-slate-300 bg-white text-slate-700 font-bold text-xs tracking-wider uppercase rounded-xl hover:bg-slate-50 transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Exportar dados estruturados em CSV"
           >
-            <Download className="w-4 h-4 text-emerald-400" />
-            <span>Exportar Dashboard</span>
+            <Download className="w-4 h-4 text-slate-500" />
+            <span>.CSV</span>
           </button>
         </div>
       </div>
